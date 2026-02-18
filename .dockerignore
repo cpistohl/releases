@@ -1,0 +1,11 @@
+node_modules
+.env
+.env.*
+cache.sqlite
+cache.sqlite-wal
+cache.sqlite-shm
+.git
+.gitignore
+*.md
+tests
+src/client/compiled.css

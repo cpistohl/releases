@@ -1,0 +1,12 @@
+services:
+  releases:
+    build: .
+    container_name: releases
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - caddy
+
+networks:
+  caddy:
+    external: true

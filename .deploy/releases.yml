@@ -1,0 +1,19 @@
+services:
+  releases:
+    image: ghcr.io/cpistohl/releases:latest
+    container_name: releases
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    env_file: /home/admin/docker/.env
+    networks:
+      - caddy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  caddy:
+    external: true
