@@ -22,13 +22,15 @@ export function renderFeatured(movies: Movie[]) {
 
   let html = '<div class="mb-9 featured">';
   html += '<h2 class="text-xs font-bold uppercase tracking-widest text-accent mb-4 featured-heading">Top Releases</h2>';
-  html += '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">';
+  html += '<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5">';
 
-  for (const m of top) {
+  for (let i = 0; i < top.length; i++) {
+    const m = top[i];
     const date = new Date(m.release_date + "T00:00:00");
     const fmt = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     const esc = escapeHtml(m.title);
-    html += `<a class="no-underline text-inherit featured-card" data-movie-id="${m.id}"
+    const hideOnMedium = i === 4 ? " hidden lg:block" : "";
+    html += `<a class="no-underline text-inherit featured-card${hideOnMedium}" data-movie-id="${m.id}"
       data-title="${esc}" data-overview="${escapeHtml(m.overview.slice(0, 200))}"
       data-rating="${m.vote_average}" data-poster="${posterUrl(m.poster_path, "w500")}"
       data-date="${m.release_date}" data-cast="${escapeHtml(m.cast.join(", "))}"
@@ -127,7 +129,7 @@ export function renderTimeline(moviesByDate: Map<string, Movie[]>) {
       if (m.cast.length) html += `<span class="text-sm text-text-muted leading-snug">${escapeHtml(m.cast.join(", "))}</span>`;
       if (m.vote_average > 0) html += `<span class="text-sm font-semibold text-accent">★ ${m.vote_average.toFixed(1)}</span>`;
       html += `<p class="text-sm leading-relaxed text-text-dim">${escapeHtml(m.overview.slice(0, 180))}${m.overview.length > 180 ? "..." : ""}</p>`;
-      html += `<a class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-bg text-sm font-bold no-underline self-start mt-1 hover:bg-accent-hover transition-colors" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Get Tickets</a>`;
+      html += `<a class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-accent text-bg text-sm font-bold no-underline self-center sm:self-start mt-1 hover:bg-accent-hover transition-colors" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Get Tickets</a>`;
       html += '</div></div></div>';
     }
     html += '</div></div>';

@@ -21,21 +21,29 @@
   <div id="error-banner"></div>
 
   <nav class="navbar-header sticky top-0 z-50 border-b border-surface-border">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <span class="app-title text-[22px] font-bold tracking-tight">Releases</span>
-        <div class="flex items-center">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center justify-between">
+        <button class="app-title text-[20px] sm:text-[22px] font-bold tracking-tight cursor-pointer" id="title-btn">Releases</button>
+        <div class="view-toggle-container sm:hidden" id="view-toggle-mobile">
+          <div class="view-toggle-indicator" id="view-indicator-mobile"></div>
+          <button class="view-btn active" data-view="calendar">Calendar</button>
+          <button class="view-btn" data-view="timeline">List</button>
+        </div>
+      </div>
+      <div class="flex items-center justify-center gap-2 sm:gap-4">
+        <div class="flex items-center relative">
           <button class="nav-arrow rounded-l-lg border border-surface-border bg-surface text-text-muted hover:bg-surface-hover hover:text-text transition-colors" id="prev-btn" aria-label="Previous month">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <span class="font-semibold text-[17px] min-w-[150px] text-center month-title px-3 py-1.5 border-y border-surface-border bg-surface/50" id="month-title"></span>
+          <button class="font-semibold text-[15px] sm:text-[17px] min-w-[130px] sm:min-w-[150px] text-center month-title px-2 sm:px-3 py-1.5 border-y border-surface-border bg-surface/50 cursor-pointer hover:bg-surface-hover transition-colors" id="month-title"></button>
           <button class="nav-arrow rounded-r-lg border border-surface-border bg-surface text-text-muted hover:bg-surface-hover hover:text-text transition-colors" id="next-btn" aria-label="Next month">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
+          <div class="month-dropdown" id="month-dropdown"></div>
         </div>
-        <button class="px-4 py-1.5 rounded-full border border-accent text-accent text-[13px] font-semibold hover:bg-accent hover:text-bg transition-colors" id="today-btn">Today</button>
+        <button class="px-3 sm:px-4 py-1.5 rounded-full border border-accent text-accent text-[13px] font-semibold hover:bg-accent hover:text-bg transition-colors" id="today-btn">Today</button>
       </div>
-      <div class="view-toggle-container">
+      <div class="view-toggle-container hidden sm:inline-flex" id="view-toggle-desktop">
         <div class="view-toggle-indicator" id="view-indicator"></div>
         <button class="view-btn active" data-view="calendar">Calendar</button>
         <button class="view-btn" data-view="timeline">List</button>
@@ -43,7 +51,7 @@
     </div>
   </nav>
 
-  <main class="max-w-7xl mx-auto px-6 py-7 main">
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-7 main">
     <div id="featured-view"></div>
     <div id="calendar-view"></div>
     <div id="timeline-view"></div>

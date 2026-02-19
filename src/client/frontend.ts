@@ -27,18 +27,23 @@ function setView(v: string) {
   document.body.classList.toggle("view-timeline", v === "timeline");
   viewBtns.forEach(b => b.classList.toggle("active", b.dataset.view === v));
   $("view-indicator")?.classList.toggle("timeline", v === "timeline");
+  $("view-indicator-mobile")?.classList.toggle("timeline", v === "timeline");
   localStorage.setItem("calendarView", v);
 }
 
 // navigation
 $("prev-btn").addEventListener("click", () => go(-1));
 $("next-btn").addEventListener("click", () => go(1));
-$("today-btn").addEventListener("click", () => {
+$("today-btn").addEventListener("click", goToday);
+$("title-btn").addEventListener("click", goToday);
+
+function goToday() {
   now = new Date();
   year = now.getFullYear();
   month = now.getMonth() + 1;
+  closeMonthDropdown();
   load();
-});
+}
 
 function go(dir: number) {
   month += dir;
@@ -47,13 +52,52 @@ function go(dir: number) {
   load();
 }
 
+// month dropdown
+const monthDropdown = $("month-dropdown");
+
+$("month-title").addEventListener("click", (e) => {
+  e.stopPropagation();
+
+  if (monthDropdown.classList.contains("open")) {
+    closeMonthDropdown();
+    return;
+  }
+
+  const todayMonth = new Date().getMonth() + 1;
+  const todayYear = new Date().getFullYear();
+  monthDropdown.innerHTML = MONTHS.map((name, i) => {
+    const m = i + 1;
+    const isActive = m === month;
+    const isCurrent = m === todayMonth && year === todayYear;
+    const cls = isActive ? "active" : isCurrent ? "current" : "";
+    return `<button data-month="${m}" class="${cls}">${name.slice(0, 3)}</button>`;
+  }).join("");
+  monthDropdown.classList.add("open");
+});
+
+monthDropdown.addEventListener("click", (e) => {
+  const btn = (e.target as HTMLElement).closest("button");
+  if (!btn) return;
+  
+  const m = +(btn.dataset.month || "");
+  if (m) {
+    month = m;
+    closeMonthDropdown();
+    load();
+  }
+});
+
+function closeMonthDropdown() {
+  monthDropdown.classList.remove("open");
+}
+
 // skeletons shown while fetching
 function skeletons() {
   featured.innerHTML =
     '<div class="mb-9">' +
     '<div class="skeleton-text-sm w-32 mb-4"></div>' +
-    '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">' +
-    '<div class="skeleton-featured"></div>'.repeat(5) +
+    '<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5">' +
+    '<div class="skeleton-featured"></div>'.repeat(4) + '<div class="skeleton-featured hidden lg:block"></div>' +
     '</div></div>';
 
   const headers = DAYS.map(d => `<div class="day-header">${d}</div>`).join('');
@@ -122,6 +166,12 @@ function closePopover() {
 
 document.addEventListener("click", e => {
   const t = e.target as HTMLElement;
+
+  // close month dropdown on outside click
+  if (!t.closest("#month-dropdown") && !t.closest("#month-title")) {
+    closeMonthDropdown();
+  }
+
   const poster = t.closest(".mini-poster") || t.closest(".featured-card");
   if (poster) {
     e.stopPropagation();
@@ -135,7 +185,7 @@ document.addEventListener("click", e => {
 });
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closePopover();
+  if (e.key === "Escape") { closeMonthDropdown(); closePopover(); }
 });
 
 function openPopover(el: HTMLElement) {

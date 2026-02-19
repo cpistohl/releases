@@ -62,8 +62,14 @@ body::before {
 /* view toggle (calendar/list switcher) */
 .view-toggle-container {
   position: relative;
-  display: inline-flex;
-  @apply bg-surface border border-surface-border rounded-lg p-0.5;
+  @apply inline-flex bg-surface border border-surface-border rounded-lg p-0.5;
+}
+/* allow Tailwind hidden/sm:hidden to override display */
+#view-toggle-mobile { display: inline-flex; }
+#view-toggle-desktop { display: none; }
+@media (min-width: 640px) {
+  #view-toggle-mobile { display: none; }
+  #view-toggle-desktop { display: inline-flex; }
 }
 .view-toggle-indicator {
   position: absolute;
@@ -76,10 +82,33 @@ body::before {
 .view-toggle-indicator.timeline { transform: translateX(calc(100% + 2px)); }
 
 .view-btn {
-  @apply px-3.5 py-1 rounded-md text-[13px] font-medium transition-colors relative z-10;
+  @apply py-1 rounded-md text-[13px] font-medium transition-colors relative z-10;
+  width: 72px;
+  text-align: center;
   color: var(--color-text-muted);
 }
 .view-btn.active { @apply text-bg font-semibold; }
+
+/* month dropdown */
+.month-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+  @apply bg-surface border border-surface-border rounded-xl p-1.5 z-50;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.2);
+  animation: dropdown-in 0.15s ease;
+}
+.month-dropdown.open { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.month-dropdown button {
+  @apply px-3 py-2 rounded-lg text-[13px] text-text-muted transition-colors cursor-pointer;
+  white-space: nowrap;
+}
+.month-dropdown button:hover { @apply bg-surface-hover text-text; }
+.month-dropdown button.active { @apply bg-accent text-bg font-semibold; }
+.month-dropdown button.current { @apply text-accent font-medium; }
 
 /* featured section */
 .featured-heading { position: relative; }
@@ -241,6 +270,7 @@ button:focus-visible, a:focus-visible,
 button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 
 /* keyframes */
+@keyframes dropdown-in  { from { opacity: 0; transform: translateX(-50%) translateY(4px) } to { opacity: 1; transform: translateX(-50%) } }
 @keyframes fade-in      { from { opacity: 0 } to { opacity: 1 } }
 @keyframes fade-out     { from { opacity: 1 } to { opacity: 0 } }
 @keyframes fade-in-up   { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
@@ -254,13 +284,42 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 }
 
 /* mobile */
-@media (max-width: 768px) {
-  .day-cell { @apply min-h-11 p-1; }
-  .day-cell.has-movies { @apply min-h-[90px]; }
-  .mini-poster { @apply w-8 h-12; }
-  .day-number { @apply text-[11px] w-[22px] h-[22px]; }
+@media (max-width: 640px) {
+  /* calendar grid: compact for mobile */
+  .calendar-grid { @apply rounded-xl; gap: 1px; }
+  .day-header { @apply py-1.5 px-1 text-[9px]; }
+  .day-cell { @apply min-h-10 p-1; }
+  .day-cell.has-movies { @apply min-h-[80px]; }
+  .mini-poster { @apply w-7 h-[42px] rounded-sm; }
+  .day-number { @apply text-[10px] w-5 h-5; }
+  .day-movies { @apply gap-1 mt-1; }
+  .more-badge { @apply text-[9px] px-0.5; }
+
+  /* featured section */
+  .featured { @apply mb-6; }
+  .featured-poster { @apply rounded-lg; }
+  .featured-card .pt-2\.5 { @apply pt-1.5; }
+
+  /* timeline / list view */
   .movie-card-body { @apply flex-col items-center text-center; }
-  .card-poster { @apply w-[140px] h-[210px]; }
-  .popover-inner { @apply flex-col items-center text-center; }
-  .month-title { @apply min-w-0 text-[15px]; }
+  .card-poster { @apply w-[120px] h-[180px] rounded-lg; }
+  .timeline-group h3 { @apply text-[10px] pb-1.5 mb-3; }
+
+  /* popover */
+  .popover-card { @apply w-[95%] max-w-none p-4 rounded-2xl; }
+  .popover-inner { @apply flex-col items-center text-center gap-3; }
+  .popover-poster { @apply w-[120px] h-[180px] rounded-lg; }
+  .popover-inner .text-xl { @apply text-lg; }
+  .popover-inner p { @apply text-[13px]; }
+
+  /* footer */
+  .tmdb-footer { @apply mt-8; }
+}
+
+/* small phones */
+@media (max-width: 380px) {
+  .mini-poster { @apply w-6 h-9 rounded-sm; }
+  .day-cell.has-movies { @apply min-h-[65px]; }
+  .day-number { @apply text-[9px] w-4 h-4; }
+  .card-poster { @apply w-[100px] h-[150px]; }
 }
