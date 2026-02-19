@@ -51,14 +51,15 @@ jobs:
     name: Deploy to Mini
     runs-on: ubuntu-latest
     needs: build-and-push
+    environment: MINI
 
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.MINI_HOST }}
-          username: ${{ secrets.MINI_USER }}
-          key: ${{ secrets.MINI_SSH_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u cpistohl --password-stdin
             docker pull ghcr.io/cpistohl/releases:latest
