@@ -18,9 +18,10 @@ FROM base AS runtime
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/src/client/compiled.css ./src/client/compiled.css
 COPY package.json ./
 COPY src ./src
+# Copy built CSS last so it overwrites the source copy
+COPY --from=build /app/src/client/compiled.css ./src/client/compiled.css
 
 ENV NODE_ENV=production
 EXPOSE 3000
