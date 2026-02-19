@@ -62,6 +62,6 @@ jobs:
           script: |
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u cpistohl --password-stdin
             docker pull ghcr.io/cpistohl/releases:latest
-            cd ~/docker/projects/releases
+            cd ~/docker/projects/apps
             docker compose up -d --force-recreate
             docker image prune -f
