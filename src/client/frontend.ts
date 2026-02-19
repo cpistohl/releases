@@ -27,7 +27,6 @@ function setView(v: string) {
   document.body.classList.toggle("view-timeline", v === "timeline");
   viewBtns.forEach(b => b.classList.toggle("active", b.dataset.view === v));
   $("view-indicator")?.classList.toggle("timeline", v === "timeline");
-  $("view-indicator-mobile")?.classList.toggle("timeline", v === "timeline");
   localStorage.setItem("calendarView", v);
 }
 

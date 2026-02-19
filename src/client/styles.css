@@ -48,46 +48,123 @@ body::before {
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   transition: box-shadow 0.3s ease;
+  border-bottom: 1px solid var(--color-surface-border);
 }
 .navbar-header.scrolled {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.nav-arrow {
-  @apply w-8 flex items-center justify-center cursor-pointer self-stretch;
+.nav-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
-.nav-arrow:first-child { border-right: none; }
-.nav-arrow:last-child { border-left: none; }
 
-/* view toggle (calendar/list switcher) */
+.nav-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-month-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.nav-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  align-self: stretch;
+  cursor: pointer;
+  border: 1px solid var(--color-surface-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+.nav-arrow:hover { background: var(--color-surface-hover); color: var(--color-text); }
+.nav-arrow:first-child { border-radius: 8px 0 0 8px; border-right: none; }
+.nav-arrow:last-of-type { border-radius: 0 8px 8px 0; border-left: none; }
+
+.month-title {
+  font-weight: 600;
+  font-size: 17px;
+  min-width: 150px;
+  text-align: center;
+  padding: 6px 12px;
+  border-top: 1px solid var(--color-surface-border);
+  border-bottom: 1px solid var(--color-surface-border);
+  background: rgba(21, 21, 30, 0.5);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.month-title:hover { background: var(--color-surface-hover); }
+
+.today-btn {
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  transition: background 0.15s, color 0.15s;
+}
+.today-btn:hover { background: var(--color-accent); color: var(--color-bg); }
+
+/* view toggle */
 .view-toggle-container {
   position: relative;
-  @apply inline-flex bg-surface border border-surface-border rounded-lg p-0.5;
-}
-/* allow Tailwind hidden/sm:hidden to override display */
-#view-toggle-mobile { display: inline-flex; }
-#view-toggle-desktop { display: none; }
-@media (min-width: 640px) {
-  #view-toggle-mobile { display: none; }
-  #view-toggle-desktop { display: inline-flex; }
+  display: inline-flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: 8px;
+  padding: 2px;
 }
 .view-toggle-indicator {
   position: absolute;
   top: 2px; bottom: 2px; left: 2px;
   width: 72px;
-  @apply bg-accent rounded-md;
+  background: var(--color-accent);
+  border-radius: 6px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 .view-toggle-indicator.timeline { transform: translateX(calc(100% + 2px)); }
 
 .view-btn {
-  @apply py-1 rounded-md text-[13px] font-medium transition-colors relative z-10;
+  position: relative;
+  z-index: 10;
   width: 72px;
   text-align: center;
+  padding: 4px 0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color 0.15s;
 }
-.view-btn.active { @apply text-bg font-semibold; }
+.view-btn.active { color: var(--color-bg); font-weight: 600; }
 
 /* month dropdown */
 .month-dropdown {
@@ -97,18 +174,44 @@ body::before {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 6px;
-  @apply bg-surface border border-surface-border rounded-xl p-1.5 z-50;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: 12px;
+  padding: 6px;
+  z-index: 100;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.2);
   animation: dropdown-in 0.15s ease;
 }
-.month-dropdown.open { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-.month-dropdown button {
-  @apply px-3 py-2 rounded-lg text-[13px] text-text-muted transition-colors cursor-pointer;
-  white-space: nowrap;
+.month-dropdown.open {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
 }
-.month-dropdown button:hover { @apply bg-surface-hover text-text; }
-.month-dropdown button.active { @apply bg-accent text-bg font-semibold; }
-.month-dropdown button.current { @apply text-accent font-medium; }
+.month-dropdown button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.month-dropdown button:hover { background: var(--color-surface-hover); color: var(--color-text); }
+.month-dropdown button.active { background: var(--color-accent); color: var(--color-bg); font-weight: 600; }
+.month-dropdown button.current { color: var(--color-accent); font-weight: 500; }
+
+/* mobile navbar */
+@media (max-width: 640px) {
+  .nav-inner {
+    flex-wrap: wrap;
+    padding: 10px 16px;
+  }
+  .nav-title { font-size: 20px; }
+  .month-title { font-size: 15px; min-width: 120px; padding: 6px 8px; }
+  .today-btn { padding: 6px 12px; }
+}
 
 /* featured section */
 .featured-heading { position: relative; }
