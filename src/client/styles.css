@@ -550,16 +550,13 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 @media (max-width: 640px) {
   /* ─ mobile header: row 1 = title + toggle, row 2 = month nav ─ */
   .nav-inner {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
-    align-items: center;
-    gap: 8px;
+    flex-wrap: wrap;
     padding: 10px 16px;
+    gap: 8px;
   }
-  .nav-title { font-size: 20px; grid-column: 1; grid-row: 1; }
-  .view-toggle-container { grid-column: 2; grid-row: 1; }
-  .nav-center { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
+  .nav-title { font-size: 20px; order: 1; }
+  .view-toggle-container { order: 2; margin-left: auto; }
+  .nav-center { order: 3; width: 100%; justify-content: center; }
   .month-title { font-size: 15px; min-width: 120px; padding: 6px 8px; }
   .today-btn { padding: 6px 12px; }
 
