@@ -241,7 +241,7 @@ body::before {
 
 .featured-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -257,7 +257,6 @@ body::before {
 .featured-poster {
   width: 100%;
   aspect-ratio: 2/3;
-  object-cover: cover;
   object-fit: cover;
   border-radius: 12px;
   position: relative;
@@ -540,7 +539,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 
 /* ── responsive ── */
 @media (max-width: 1024px) {
-  .featured-grid { grid-template-columns: repeat(4, 1fr); }
+  .featured-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .featured-card.hide-md { display: none; }
 }
 
@@ -549,21 +548,32 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 }
 
 @media (max-width: 640px) {
-  .nav-inner { flex-wrap: wrap; padding: 10px 16px; }
-  .nav-title { font-size: 20px; }
+  /* ─ mobile header: row 1 = title + toggle, row 2 = month nav ─ */
+  .nav-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+  }
+  .nav-title { font-size: 20px; grid-column: 1; grid-row: 1; }
+  .view-toggle-container { grid-column: 2; grid-row: 1; }
+  .nav-center { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
   .month-title { font-size: 15px; min-width: 120px; padding: 6px 8px; }
   .today-btn { padding: 6px 12px; }
+
   .main-content { padding: 16px 12px; }
 
-  .featured-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .featured-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .featured-poster { border-radius: 8px; }
 
   .calendar-grid { border-radius: 12px; }
-  .day-header { padding: 6px 4px; font-size: 9px; }
-  .day-cell { min-height: 40px; padding: 4px; }
-  .day-cell.has-movies { min-height: 80px; }
-  .mini-poster { width: 28px; height: 42px; border-radius: 3px; }
-  .day-number { font-size: 10px; width: 20px; height: 20px; }
+  .day-header { padding: 6px 4px; font-size: 10px; }
+  .day-cell { min-height: 44px; padding: 4px; }
+  .day-cell.has-movies { min-height: 85px; }
+  .mini-poster { width: 32px; height: 48px; border-radius: 4px; }
+  .day-number { font-size: 11px; width: 22px; height: 22px; }
   .day-movies { gap: 4px; margin-top: 4px; }
   .more-badge { font-size: 9px; padding: 0 2px; }
 
@@ -579,11 +589,13 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
   .popover-overview { font-size: 13px; }
 
   .tmdb-footer { margin-top: 32px; }
+
+  .skel-featured-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
 
 @media (max-width: 380px) {
-  .mini-poster { width: 24px; height: 36px; border-radius: 3px; }
-  .day-cell.has-movies { min-height: 65px; }
-  .day-number { font-size: 9px; width: 16px; height: 16px; }
+  .mini-poster { width: 26px; height: 39px; border-radius: 3px; }
+  .day-cell.has-movies { min-height: 70px; }
+  .day-number { font-size: 10px; width: 18px; height: 18px; }
   .card-poster { width: 100px; height: 150px; }
 }
