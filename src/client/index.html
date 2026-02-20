@@ -13,14 +13,14 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Movie Releases Calendar" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
-  <link rel="stylesheet" href="./compiled.css" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
 
   <div id="error-banner"></div>
 
-  <nav class="navbar-header sticky top-0 z-50">
+  <nav class="navbar-header">
     <div class="nav-inner">
       <button class="app-title nav-title" id="title-btn">Releases</button>
       <div class="nav-center">
@@ -44,17 +44,17 @@
     </div>
   </nav>
 
-  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-7 main">
+  <main class="main-content">
     <div id="featured-view"></div>
     <div id="calendar-view"></div>
     <div id="timeline-view"></div>
   </main>
 
   <footer class="tmdb-footer">
-    <div class="max-w-7xl mx-auto px-6 py-6">
-      <p class="text-xs text-text-dim text-center">
+    <div class="tmdb-footer-inner">
+      <p>
         This product uses the TMDB API but is not endorsed or certified by
-        <a href="https://www.themoviedb.org" target="_blank" rel="noopener" class="text-accent hover:text-accent-hover transition-colors">TMDB</a>.
+        <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
       </p>
     </div>
   </footer>

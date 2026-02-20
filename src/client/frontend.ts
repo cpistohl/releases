@@ -1,8 +1,4 @@
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+import { MONTH_NAMES, DAY_NAMES, longDate } from "../lib/constants";
 
 let now = new Date();
 let year = +(new URLSearchParams(location.search).get("year") ?? now.getFullYear());
@@ -64,7 +60,7 @@ $("month-title").addEventListener("click", (e) => {
 
   const todayMonth = new Date().getMonth() + 1;
   const todayYear = new Date().getFullYear();
-  monthDropdown.innerHTML = MONTHS.map((name, i) => {
+  monthDropdown.innerHTML = MONTH_NAMES.map((name, i) => {
     const m = i + 1;
     const isActive = m === month;
     const isCurrent = m === todayMonth && year === todayYear;
@@ -77,7 +73,7 @@ $("month-title").addEventListener("click", (e) => {
 monthDropdown.addEventListener("click", (e) => {
   const btn = (e.target as HTMLElement).closest("button");
   if (!btn) return;
-  
+
   const m = +(btn.dataset.month || "");
   if (m) {
     month = m;
@@ -93,29 +89,29 @@ function closeMonthDropdown() {
 // skeletons shown while fetching
 function skeletons() {
   featured.innerHTML =
-    '<div class="mb-9">' +
-    '<div class="skeleton-text-sm w-32 mb-4"></div>' +
-    '<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5">' +
-    '<div class="skeleton-featured"></div>'.repeat(4) + '<div class="skeleton-featured hidden lg:block"></div>' +
+    '<div class="featured">' +
+    '<div class="skeleton-text-sm skel-w32" style="margin-bottom:16px"></div>' +
+    '<div class="skel-featured-grid">' +
+    '<div class="skeleton-featured"></div>'.repeat(5) +
     '</div></div>';
 
-  const headers = DAYS.map(d => `<div class="day-header">${d}</div>`).join('');
+  const headers = DAY_NAMES.map(d => `<div class="day-header">${d}</div>`).join('');
   calendar.innerHTML =
     '<div class="calendar-grid">' + headers +
-    '<div class="day-cell" style="animation:none"><div class="skeleton-text-sm w-16 mt-2"></div></div>'.repeat(35) +
+    '<div class="day-cell" style="animation:none"><div class="skeleton-text-sm skel-w16" style="margin-top:8px"></div></div>'.repeat(35) +
     '</div>';
 
   const card =
-    '<div class="bg-surface rounded-2xl border border-surface-border p-4 flex gap-4">' +
+    '<div class="skel-card">' +
     '<div class="skeleton-poster"></div>' +
-    '<div class="flex-1 flex flex-col gap-2">' +
-    '<div class="skeleton-text w-3/4"></div>' +
-    '<div class="skeleton-text-sm w-1/2"></div>' +
-    '<div class="skeleton-text-sm w-2/3"></div>' +
-    '<div class="skeleton-text w-full mt-1"></div>' +
-    '<div class="skeleton-text w-full"></div>' +
+    '<div class="skel-card-text">' +
+    '<div class="skeleton-text skel-w75"></div>' +
+    '<div class="skeleton-text-sm skel-w50"></div>' +
+    '<div class="skeleton-text-sm skel-w66"></div>' +
+    '<div class="skeleton-text skel-wfull skel-mt"></div>' +
+    '<div class="skeleton-text skel-wfull"></div>' +
     '</div></div>';
-  timeline.innerHTML = '<div class="flex flex-col gap-4">' + card.repeat(4) + '</div>';
+  timeline.innerHTML = '<div class="skel-timeline">' + card.repeat(4) + '</div>';
 }
 
 async function load() {
@@ -191,29 +187,25 @@ function openPopover(el: HTMLElement) {
   closePopover();
   const d = el.dataset;
   const title = d.title || "";
-  const date = d.date
-    ? new Date(d.date + "T00:00:00").toLocaleDateString("en-US", {
-        weekday: "long", year: "numeric", month: "long", day: "numeric",
-      })
-    : "";
+  const date = d.date ? longDate(d.date) : "";
   const rating = d.rating && parseFloat(d.rating) > 0
-    ? `<div class="text-sm font-semibold text-accent">★ ${parseFloat(d.rating).toFixed(1)}</div>` : "";
+    ? `<div class="popover-rating">★ ${parseFloat(d.rating).toFixed(1)}</div>` : "";
   const tickets = d.tickets
-    ? `<a class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-bg text-sm font-bold no-underline self-start hover:bg-accent-hover transition-colors" href="${d.tickets}" target="_blank" rel="noopener">Get Tickets</a>` : "";
+    ? `<a class="tickets-btn" href="${d.tickets}" target="_blank" rel="noopener">Get Tickets</a>` : "";
 
   const overlay = document.createElement("div");
   overlay.className = "popover-overlay";
   overlay.innerHTML = `
-    <div class="bg-surface rounded-3xl p-6 popover-card">
-      <div class="flex gap-5 popover-inner">
-        <img class="rounded-xl popover-poster" src="${d.poster}" alt="${title}" />
-        <div class="flex flex-col gap-2">
-          <div class="text-xl font-bold tracking-tight">${title}</div>
-          <div class="text-sm text-text-muted">${date}</div>
-          ${d.director ? `<div class="text-sm text-text-muted">Directed by ${d.director}</div>` : ""}
-          ${d.cast ? `<div class="text-sm text-text-muted">${d.cast}</div>` : ""}
+    <div class="popover-card">
+      <div class="popover-inner">
+        <img class="popover-poster" src="${d.poster}" alt="${title}" />
+        <div class="popover-details">
+          <div class="popover-title">${title}</div>
+          <div class="popover-meta">${date}</div>
+          ${d.director ? `<div class="popover-meta">Directed by ${d.director}</div>` : ""}
+          ${d.cast ? `<div class="popover-meta">${d.cast}</div>` : ""}
           ${rating}
-          <p class="text-sm leading-relaxed text-text-dim">${d.overview || ""}</p>
+          <p class="popover-overview">${d.overview || ""}</p>
           ${tickets}
         </div>
       </div>

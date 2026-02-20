@@ -6,6 +6,29 @@ if (!API_KEY) console.error("TMDB_API_KEY not set — add it to .env");
 const BASE = "https://api.themoviedb.org/3";
 const IMG = "https://image.tmdb.org/t/p";
 
+// cache TTLs
+const ONE_DAY = 24 * 60 * 60 * 1000;
+const ONE_HOUR = 60 * 60 * 1000;
+
+// how many pages of results to fetch from TMDB (20 results per page)
+const MAX_PAGES = 5;
+
+// only fetch credits for the top N movies (keeps API calls reasonable)
+const CREDITS_LIMIT = 15;
+
+// number of cast members to include per movie
+const CAST_LIMIT = 3;
+
+// concurrent credit fetches
+const CREDITS_CONCURRENCY = 8;
+
+// minimum popularity thresholds — movies below these are filtered out.
+// past/current months have tons of results, so we filter aggressively.
+// future months have fewer listings, so we're more lenient.
+const MIN_POPULARITY_PAST = 15;
+const MIN_POPULARITY_NEAR_FUTURE = 3;   // 1-2 months ahead
+const MIN_POPULARITY_FAR_FUTURE = 0.5;  // 3+ months ahead
+
 export interface Movie {
   id: number;
   title: string;
@@ -30,10 +53,6 @@ export function posterUrl(path: string | null, size = "w200") {
   return path ? `${IMG}/${size}${path}` : NO_POSTER;
 }
 
-// ttls
-const DAY = 24 * 60 * 60 * 1000;
-const HOUR = 60 * 60 * 1000;
-
 async function fetchCredits(id: number) {
   const key = `credits:${id}`;
   const hit = cacheGet<{ cast: string[]; director: string }>(key);
@@ -44,10 +63,10 @@ async function fetchCredits(id: number) {
     if (!res.ok) return { cast: [] as string[], director: "" };
     const data: any = await res.json();
 
-    const cast = (data.cast || []).slice(0, 3).map((c: any) => c.name as string);
+    const cast = (data.cast || []).slice(0, CAST_LIMIT).map((c: any) => c.name as string);
     const director = (data.crew || []).find((c: any) => c.job === "Director")?.name || "";
     const result = { cast, director };
-    cacheSet(key, result, DAY);
+    cacheSet(key, result, ONE_DAY);
     return result;
   } catch {
     return { cast: [] as string[], director: "" };
@@ -55,7 +74,7 @@ async function fetchCredits(id: number) {
 }
 
 // fetch credits in parallel with a concurrency cap
-async function loadAllCredits(movies: Movie[], limit = 8) {
+async function loadAllCredits(movies: Movie[], limit = CREDITS_CONCURRENCY) {
   let idx = 0;
   async function worker() {
     while (idx < movies.length) {
@@ -84,6 +103,15 @@ export async function fetchMoviesForMonth(year: number, month: number) {
   finally { pending.delete(key); }
 }
 
+function getMinPopularity(year: number, month: number) {
+  const now = new Date();
+  const monthsAhead = (year - now.getFullYear()) * 12 + (month - now.getMonth() - 1);
+
+  if (monthsAhead <= 0) return MIN_POPULARITY_PAST;
+  if (monthsAhead <= 2) return MIN_POPULARITY_NEAR_FUTURE;
+  return MIN_POPULARITY_FAR_FUTURE;
+}
+
 async function _fetch(year: number, month: number, cacheKey: string) {
   if (!API_KEY) return [];
 
@@ -103,12 +131,10 @@ async function _fetch(year: number, month: number, cacheKey: string) {
     with_original_language: "en",
   });
 
-  const now = new Date();
-  const ahead = (year - now.getFullYear()) * 12 + (month - now.getMonth() - 1);
-  const minPop = ahead <= 0 ? 15 : ahead <= 2 ? 3 : 0.5;
-
+  const minPop = getMinPopularity(year, month);
   const movies: Movie[] = [];
-  for (let page = 1; page <= 5; page++) {
+
+  for (let page = 1; page <= MAX_PAGES; page++) {
     params.set("page", String(page));
     try {
       const res = await fetch(`${BASE}/discover/movie?${params}`);
@@ -133,8 +159,8 @@ async function _fetch(year: number, month: number, cacheKey: string) {
   }
 
   // only grab credits for the movies we'll actually show
-  await loadAllCredits(movies.slice(0, 15));
-  cacheSet(cacheKey, movies, HOUR);
+  await loadAllCredits(movies.slice(0, CREDITS_LIMIT));
+  cacheSet(cacheKey, movies, ONE_HOUR);
   return movies;
 }
 

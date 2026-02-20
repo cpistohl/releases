@@ -1,5 +1,5 @@
 {
-  "name": "calender",
+  "name": "releases",
   "devDependencies": {
     "@types/bun": "latest"
   },
@@ -8,14 +8,8 @@
   },
   "private": true,
   "scripts": {
-    "css": "bunx @tailwindcss/cli -i src/client/styles.css -o src/client/compiled.css",
-    "css:watch": "bunx @tailwindcss/cli -i src/client/styles.css -o src/client/compiled.css --watch",
-    "start": "bun run css && bun run src/server/server.ts",
-    "dev": "bun run css:watch & bun --hot src/server/server.ts",
+    "start": "bun run src/server/server.ts",
+    "dev": "bun --hot src/server/server.ts",
     "test": "bun test"
-  },
-  "dependencies": {
-    "@tailwindcss/cli": "^4.1.18",
-    "tailwindcss": "^4.1.18"
   }
 }
