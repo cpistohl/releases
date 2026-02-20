@@ -65,26 +65,31 @@ body::before {
 .nav-inner {
   max-width: 80rem;
   margin: 0 auto;
-  padding: 12px 24px;
+  padding: 10px 16px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .nav-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.02em;
   cursor: pointer;
   border: none;
+  order: 1;
 }
 
 .nav-center {
   display: flex;
   align-items: center;
   gap: 10px;
+  order: 3;
+  width: 100%;
+  justify-content: center;
 }
+
 
 .nav-month-group {
   display: flex;
@@ -145,6 +150,8 @@ body::before {
   border: 1px solid var(--surface-border);
   border-radius: 8px;
   padding: 2px;
+  order: 2;
+  margin-left: auto;
 }
 .view-toggle-indicator {
   position: absolute;
@@ -537,7 +544,19 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
   50%      { box-shadow: 0 0 0 6px transparent, 0 0 16px var(--accent-glow); }
 }
 
-/* ── responsive ── */
+/* ── responsive: desktop (single-row nav) ── */
+@media (min-width: 641px) {
+  .nav-inner {
+    flex-wrap: nowrap;
+    padding: 12px 24px;
+    gap: 12px;
+    justify-content: space-between;
+  }
+  .nav-title { font-size: 22px; order: unset; }
+  .nav-center { order: unset; width: auto; justify-content: unset; }
+  .view-toggle-container { order: unset; margin-left: 0; }
+}
+
 @media (max-width: 1024px) {
   .featured-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .featured-card.hide-md { display: none; }
@@ -547,16 +566,8 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
   .featured-card.hide-md { display: block; }
 }
 
+/* ── responsive: small mobile tweaks ── */
 @media (max-width: 640px) {
-  /* ─ mobile header: row 1 = title + toggle, row 2 = month nav ─ */
-  .nav-inner {
-    flex-wrap: wrap;
-    padding: 10px 16px;
-    gap: 8px;
-  }
-  .nav-title { font-size: 20px; order: 1; }
-  .view-toggle-container { order: 2; margin-left: auto; }
-  .nav-center { order: 3; width: 100%; justify-content: center; }
   .month-title { font-size: 15px; min-width: 120px; padding: 6px 8px; }
   .today-btn { padding: 6px 12px; }
 
