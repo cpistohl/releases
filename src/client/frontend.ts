@@ -1,3 +1,4 @@
+import { Modal } from "bootstrap";
 import { MONTH_NAMES, DAY_NAMES, longDate } from "../lib/constants";
 
 let now = new Date();
@@ -138,7 +139,7 @@ async function load() {
 
     if (data.error) {
       errorEl.innerHTML = data.error;
-      errorEl.className = "error-banner";
+      errorEl.className = "error-banner alert alert-warning";
     } else {
       errorEl.innerHTML = "";
       errorEl.className = "";
@@ -151,12 +152,14 @@ async function load() {
 
 load();
 
-// popover
-function closePopover() {
-  const el = document.querySelector(".popover-overlay");
-  if (!el) return;
-  el.classList.add("closing");
-  setTimeout(() => el.remove(), 200);
+// movie modal (Bootstrap)
+let movieModal: Modal | null = null;
+
+function getMovieModal() {
+  if (!movieModal) {
+    movieModal = new Modal(document.getElementById("movieModal")!);
+  }
+  return movieModal;
 }
 
 document.addEventListener("click", e => {
@@ -173,44 +176,37 @@ document.addEventListener("click", e => {
     openPopover(poster as HTMLElement);
     return;
   }
-  if (t.closest(".popover-overlay") && !t.closest(".popover-card")) {
-    e.stopPropagation();
-    closePopover();
-  }
 });
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { closeMonthDropdown(); closePopover(); }
+  if (e.key === "Escape") { closeMonthDropdown(); }
 });
 
 function openPopover(el: HTMLElement) {
-  closePopover();
   const d = el.dataset;
   const title = d.title || "";
   const date = d.date ? longDate(d.date) : "";
-  const rating = d.rating && parseFloat(d.rating) > 0
-    ? `<div class="popover-rating">★ ${parseFloat(d.rating).toFixed(1)}</div>` : "";
+  const ratingVal = d.rating ? parseFloat(d.rating) : 0;
+  const rating = ratingVal > 0
+    ? `<div class="fw-semibold text-warning mb-1">★ ${ratingVal.toFixed(1)}</div>` : "";
   const tickets = d.tickets
-    ? `<a class="tickets-btn" href="${d.tickets}" target="_blank" rel="noopener">Get Tickets</a>` : "";
+    ? `<a class="tickets-btn btn btn-warning rounded-pill fw-bold mt-2" href="${d.tickets}" target="_blank" rel="noopener">Get Tickets</a>` : "";
 
-  const overlay = document.createElement("div");
-  overlay.className = "popover-overlay";
-  overlay.innerHTML = `
-    <div class="popover-card">
-      <div class="popover-inner">
-        <img class="popover-poster" src="${d.poster}" alt="${title}" />
-        <div class="popover-details">
-          <div class="popover-title">${title}</div>
-          <div class="popover-meta">${date}</div>
-          ${d.director ? `<div class="popover-meta">Directed by ${d.director}</div>` : ""}
-          ${d.cast ? `<div class="popover-meta">${d.cast}</div>` : ""}
-          ${rating}
-          <p class="popover-overview">${d.overview || ""}</p>
-          ${tickets}
-        </div>
+  document.getElementById("movie-modal-body")!.innerHTML = `
+    <div class="d-flex gap-3 popover-inner">
+      <img class="popover-poster rounded-3" src="${d.poster}" alt="${title}" />
+      <div class="d-flex flex-column gap-2">
+        <div class="popover-title">${title}</div>
+        <div class="text-secondary small">${date}</div>
+        ${d.director ? `<div class="text-secondary small">Directed by ${d.director}</div>` : ""}
+        ${d.cast ? `<div class="text-secondary small">${d.cast}</div>` : ""}
+        ${rating}
+        <p class="popover-overview mb-0">${d.overview || ""}</p>
+        ${tickets}
       </div>
     </div>`;
-  document.body.appendChild(overlay);
+
+  getMovieModal().show();
 }
 
 // back/forward

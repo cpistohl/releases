@@ -1,6 +1,7 @@
 {
   "name": "releases",
   "devDependencies": {
+    "@types/bootstrap": "^5.2.10",
     "@types/bun": "latest"
   },
   "peerDependencies": {
@@ -11,5 +12,8 @@
     "start": "bun run src/server/server.ts",
     "dev": "bun --hot src/server/server.ts",
     "test": "bun test"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.8"
   }
 }

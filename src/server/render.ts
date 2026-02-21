@@ -42,19 +42,22 @@ export function renderFeatured(movies: Movie[]) {
 
   const cards = top.map((m, i) => {
     const esc = escapeHtml(m.title);
-    const hideClass = i === 4 ? " hide-md" : "";
-    return `<a class="featured-card${hideClass}" ${movieDataAttrs(m)}>
-      <img class="featured-poster" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />
-      <div class="featured-info">
-        <span class="featured-title">${esc}</span>
-        <span class="featured-date">${shortDate(m.release_date)}</span>
-      </div></a>`;
+    const hideClass = i === 4 ? " d-none d-xl-block" : "";
+    return `<div class="col${hideClass}">
+      <a class="featured-card d-block" ${movieDataAttrs(m)}>
+        <img class="featured-poster w-100" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />
+        <div class="featured-info">
+          <span class="featured-title">${esc}</span>
+          <span class="featured-date">${shortDate(m.release_date)}</span>
+        </div>
+      </a>
+    </div>`;
   });
 
   return [
     '<div class="featured">',
     '<h2 class="featured-heading">Top Releases</h2>',
-    '<div class="featured-grid">',
+    '<div class="row row-cols-2 row-cols-md-4 row-cols-xl-5 g-4 featured-grid">',
     ...cards,
     '</div></div>',
   ].join("");
@@ -148,16 +151,16 @@ export function renderTimeline(moviesByDate: Map<string, Movie[]>) {
         ? escapeHtml(m.overview.slice(0, OVERVIEW_LIMIT_TIMELINE)) + "..."
         : escapeHtml(m.overview);
 
-      parts.push('<div class="movie-card">');
-      parts.push('<div class="movie-card-body">');
-      parts.push(`<img class="card-poster" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />`);
+      parts.push('<div class="card movie-card">');
+      parts.push('<div class="card-body">');
+      parts.push(`<img class="card-poster rounded-3 flex-shrink-0" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />`);
       parts.push('<div class="card-details">');
       parts.push(`<h4 class="card-title">${esc}</h4>`);
       if (m.director) parts.push(`<span class="card-meta">Directed by ${escapeHtml(m.director)}</span>`);
       if (m.cast.length) parts.push(`<span class="card-meta">${escapeHtml(m.cast.join(", "))}</span>`);
       if (m.vote_average > 0) parts.push(`<span class="card-rating">★ ${m.vote_average.toFixed(1)}</span>`);
       parts.push(`<p class="card-overview">${overview}</p>`);
-      parts.push(`<a class="tickets-btn" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Get Tickets</a>`);
+      parts.push(`<a class="tickets-btn btn btn-warning rounded-pill fw-bold" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Get Tickets</a>`);
       parts.push('</div></div></div>');
     }
     parts.push('</div></div>');

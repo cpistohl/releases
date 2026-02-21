@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 
 <head>
   <meta charset="UTF-8" />
@@ -20,26 +20,26 @@
 
   <div id="error-banner"></div>
 
-  <nav class="navbar-header">
+  <nav class="navbar-header navbar">
     <div class="nav-inner">
-      <button class="app-title nav-title" id="title-btn">Releases</button>
+      <button class="app-title nav-title btn" id="title-btn">Releases</button>
       <div class="nav-center">
         <div class="nav-month-group">
-          <button class="nav-arrow" id="prev-btn" aria-label="Previous month">
+          <button class="nav-arrow btn" id="prev-btn" aria-label="Previous month">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <button class="month-title" id="month-title"></button>
-          <button class="nav-arrow" id="next-btn" aria-label="Next month">
+          <button class="month-title btn" id="month-title"></button>
+          <button class="nav-arrow btn" id="next-btn" aria-label="Next month">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div class="month-dropdown" id="month-dropdown"></div>
         </div>
-        <button class="today-btn" id="today-btn">Today</button>
+        <button class="today-btn btn btn-outline-warning rounded-pill" id="today-btn">Today</button>
       </div>
       <div class="view-toggle-container" id="view-toggle">
         <div class="view-toggle-indicator" id="view-indicator"></div>
-        <button class="view-btn active" data-view="calendar">Calendar</button>
-        <button class="view-btn" data-view="timeline">List</button>
+        <button class="view-btn btn active" data-view="calendar">Calendar</button>
+        <button class="view-btn btn" data-view="timeline">List</button>
       </div>
     </div>
   </nav>
@@ -49,6 +49,16 @@
     <div id="calendar-view"></div>
     <div id="timeline-view"></div>
   </main>
+
+  <!-- Movie details modal -->
+  <div class="modal fade" id="movieModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content movie-modal-content position-relative">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="z-index:1"></button>
+        <div class="modal-body p-4" id="movie-modal-body"></div>
+      </div>
+    </div>
+  </div>
 
   <footer class="tmdb-footer">
     <div class="tmdb-footer-inner">
