@@ -6,6 +6,7 @@ function movie(overrides: Partial<Movie> = {}): Movie {
     id: 1, title: "Test", release_date: "2026-03-15",
     poster_path: null, overview: "A test movie",
     vote_average: 7, popularity: 50, cast: [], director: "",
+    genres: [],
     ...overrides,
   };
 }

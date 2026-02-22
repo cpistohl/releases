@@ -1,4 +1,5 @@
 import { cacheGet, cacheSet } from "./cache";
+import * as Sentry from "@sentry/bun";
 
 const API_KEY = Bun.env.TMDB_API_KEY;
 if (!API_KEY) console.error("TMDB_API_KEY not set — add it to .env");
@@ -29,6 +30,15 @@ const MIN_POPULARITY_PAST = 15;
 const MIN_POPULARITY_NEAR_FUTURE = 3;   // 1-2 months ahead
 const MIN_POPULARITY_FAR_FUTURE = 0.5;  // 3+ months ahead
 
+// TMDB genre ID → name mapping
+const GENRE_MAP: Record<number, string> = {
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
+  80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
+  14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
+  9648: "Mystery", 10749: "Romance", 878: "Sci-Fi", 10770: "TV Movie",
+  53: "Thriller", 10752: "War", 37: "Western",
+};
+
 export interface Movie {
   id: number;
   title: string;
@@ -39,6 +49,29 @@ export interface Movie {
   popularity: number;
   cast: string[];
   director: string;
+  genres: string[];
+}
+
+interface TMDBDiscoverResponse {
+  page: number;
+  total_pages: number;
+  results: TMDBMovieResult[];
+}
+
+interface TMDBMovieResult {
+  id: number;
+  title: string;
+  release_date: string;
+  poster_path: string | null;
+  overview: string;
+  vote_average: number;
+  popularity: number;
+  genre_ids: number[];
+}
+
+interface TMDBCreditsResponse {
+  cast: { name: string; order: number }[];
+  crew: { name: string; job: string }[];
 }
 
 const NO_POSTER = `data:image/svg+xml,${encodeURIComponent(
@@ -61,30 +94,31 @@ async function fetchCredits(id: number) {
   try {
     const res = await fetch(`${BASE}/movie/${id}/credits?api_key=${API_KEY}`);
     if (!res.ok) return { cast: [] as string[], director: "" };
-    const data: any = await res.json();
+    const data: TMDBCreditsResponse = await res.json();
 
-    const cast = (data.cast || []).slice(0, CAST_LIMIT).map((c: any) => c.name as string);
-    const director = (data.crew || []).find((c: any) => c.job === "Director")?.name || "";
+    const cast = (data.cast || []).slice(0, CAST_LIMIT).map((c) => c.name);
+    const director = (data.crew || []).find((c) => c.job === "Director")?.name || "";
     const result = { cast, director };
     cacheSet(key, result, ONE_DAY);
     return result;
-  } catch {
+  } catch (err) {
+    Sentry.addBreadcrumb({ category: "tmdb", message: `Credits fetch failed for movie ${id}`, level: "warning" });
     return { cast: [] as string[], director: "" };
   }
 }
 
 // fetch credits in parallel with a concurrency cap
 async function loadAllCredits(movies: Movie[], limit = CREDITS_CONCURRENCY) {
-  let idx = 0;
+  const queue = [...movies];
   async function worker() {
-    while (idx < movies.length) {
-      const m = movies[idx++]!;
+    while (queue.length > 0) {
+      const m = queue.shift()!;
       const { cast, director } = await fetchCredits(m.id);
       m.cast = cast;
       m.director = director;
     }
   }
-  await Promise.all(Array.from({ length: Math.min(limit, movies.length) }, worker));
+  await Promise.all(Array.from({ length: Math.min(limit, movies.length) }, () => worker()));
 }
 
 // dedupe in-flight requests for the same month
@@ -139,7 +173,7 @@ async function _fetch(year: number, month: number, cacheKey: string) {
     try {
       const res = await fetch(`${BASE}/discover/movie?${params}`);
       if (!res.ok) { console.error(`TMDB ${res.status}`); break; }
-      const data: any = await res.json();
+      const data: TMDBDiscoverResponse = await res.json();
 
       for (const m of data.results) {
         if (m.popularity < minPop) continue;
@@ -148,11 +182,14 @@ async function _fetch(year: number, month: number, cacheKey: string) {
           poster_path: m.poster_path, overview: m.overview,
           vote_average: m.vote_average, popularity: m.popularity,
           cast: [], director: "",
+          genres: (m.genre_ids || []).map(id => GENRE_MAP[id]).filter((g): g is string => Boolean(g)),
         });
       }
       if (page >= data.total_pages) break;
-      if (data.results.at(-1)?.popularity < minPop) break;
+      const lastResult = data.results[data.results.length - 1];
+      if (lastResult && lastResult.popularity < minPop) break;
     } catch (err) {
+      Sentry.captureException(err, { tags: { source: "tmdb", year: String(year), month: String(month) } });
       console.error("TMDB fetch failed:", err);
       break;
     }

@@ -1,12 +1,13 @@
 import { test, expect } from "bun:test";
-import type { Movie } from "../src/lib/tmdb";
-import { escapeHtml, marcusUrl, renderFeatured, renderCalendarGrid, renderTimeline } from "../src/server/render";
+import type { Movie } from "../src/client/render";
+import { escapeHtml, marcusUrl, renderFeatured, renderCalendarGrid, renderTimeline } from "../src/client/render";
 
 function movie(overrides: Partial<Movie> = {}): Movie {
   return {
     id: 1, title: "Test Movie", release_date: "2026-03-15",
     poster_path: "/test.jpg", overview: "A great test movie.",
     vote_average: 7.5, popularity: 50, cast: ["Actor A"], director: "Director X",
+    genres: ["Action", "Drama"],
     ...overrides,
   };
 }
@@ -47,17 +48,17 @@ test("escapes titles in featured html", () => {
   expect(html).toContain("Film &quot;Special&quot; &lt;Edition&gt;");
 });
 
-// renderCalendarGrid
+// renderCalendarGrid (uses Record<string, Movie[]> instead of Map)
 test("renders 7 day headers", () => {
-  expect(renderCalendarGrid(2026, 3, new Map()).match(/day-header/g)?.length).toBe(7);
+  expect(renderCalendarGrid(2026, 3, {}).match(/day-header/g)?.length).toBe(7);
 });
 
 test("renders 31 day cells for March", () => {
-  expect(renderCalendarGrid(2026, 3, new Map()).match(/day-number/g)?.length).toBe(31);
+  expect(renderCalendarGrid(2026, 3, {}).match(/day-number/g)?.length).toBe(31);
 });
 
 test("marks days with movies", () => {
-  const byDate = new Map([["2026-03-10", [movie({ id: 1, release_date: "2026-03-10" })]]]);
+  const byDate = { "2026-03-10": [movie({ id: 1, release_date: "2026-03-10" })] };
   const html = renderCalendarGrid(2026, 3, byDate);
   expect(html).toContain("has-movies");
   expect(html).toContain("mini-poster");
@@ -65,27 +66,27 @@ test("marks days with movies", () => {
 
 test("shows +N for overflow", () => {
   const five = Array.from({ length: 5 }, (_, i) => movie({ id: i, release_date: "2026-03-10" }));
-  const html = renderCalendarGrid(2026, 3, new Map([["2026-03-10", five]]));
+  const html = renderCalendarGrid(2026, 3, { "2026-03-10": five });
   expect(html).toContain("+2");
 });
 
-// renderTimeline
+// renderTimeline (uses Record<string, Movie[]> instead of Map)
 test("shows empty state when no movies", () => {
-  const html = renderTimeline(new Map());
+  const html = renderTimeline({});
   expect(html).toContain("No movie releases this month.");
 });
 
 test("groups by date", () => {
-  const byDate = new Map<string, Movie[]>([
-    ["2026-03-10", [movie({ id: 1, release_date: "2026-03-10" })]],
-    ["2026-03-20", [movie({ id: 2, release_date: "2026-03-20" })]],
-  ]);
+  const byDate: Record<string, Movie[]> = {
+    "2026-03-10": [movie({ id: 1, release_date: "2026-03-10" })],
+    "2026-03-20": [movie({ id: 2, release_date: "2026-03-20" })],
+  };
   expect(renderTimeline(byDate).match(/timeline-group/g)?.length).toBe(2);
 });
 
-test("includes director and cast", () => {
-  const byDate = new Map([["2026-03-10", [movie({ director: "Nolan", cast: ["Bale", "Ledger"] })]]]);
+test("includes genres and cast", () => {
+  const byDate = { "2026-03-10": [movie({ genres: ["Action", "Thriller"], cast: ["Bale", "Ledger"] })] };
   const html = renderTimeline(byDate);
-  expect(html).toContain("Directed by Nolan");
+  expect(html).toContain("Action / Thriller");
   expect(html).toContain("Bale, Ledger");
 });

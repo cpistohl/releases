@@ -1,13 +1,44 @@
-import { posterUrl, type Movie } from "../lib/tmdb";
 import { MONTH_NAMES, DAY_NAMES, shortDate, longDate } from "../lib/constants";
 
 export { MONTH_NAMES };
 
+export interface Movie {
+  id: number;
+  title: string;
+  release_date: string;
+  poster_path: string | null;
+  overview: string;
+  vote_average: number;
+  popularity: number;
+  cast: string[];
+  director: string;
+  genres: string[];
+}
+
+const IMG = "https://image.tmdb.org/t/p";
+
+const NO_POSTER = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300">
+    <rect width="200" height="300" fill="#e8e8ed" rx="8"/>
+    <text x="100" y="140" text-anchor="middle" fill="#8e8e93" font-family="system-ui" font-size="14">No Poster</text>
+    <text x="100" y="165" text-anchor="middle" fill="#8e8e93" font-family="system-ui" font-size="24">🎬</text>
+  </svg>`
+)}`;
+
+export function posterUrl(path: string | null, size = "w200") {
+  return path ? `${IMG}/${size}${path}` : NO_POSTER;
+}
+
 const MARCUS_BASE = "https://www.marcustheatres.com/movies";
+const TMDB_MOVIE_BASE = "https://www.themoviedb.org/movie";
 
 export function marcusUrl(title: string) {
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   return `${MARCUS_BASE}/${slug}`;
+}
+
+export function tmdbUrl(id: number) {
+  return `${TMDB_MOVIE_BASE}/${id}`;
 }
 
 export function escapeHtml(s: string) {
@@ -16,26 +47,26 @@ export function escapeHtml(s: string) {
 
 const MAX_FEATURED = 5;
 const MAX_POSTERS_PER_DAY = 3;
-const OVERVIEW_LIMIT_FEATURED = 200;
-const OVERVIEW_LIMIT_TIMELINE = 180;
+const OVERVIEW_LIMIT_DATA_ATTR = 500;
 
-/** Shared data attributes for a movie element (poster, card, etc.) */
+
 function movieDataAttrs(m: Movie) {
   const esc = escapeHtml(m.title);
   return [
     `data-movie-id="${m.id}"`,
     `data-title="${esc}"`,
-    `data-overview="${escapeHtml(m.overview.slice(0, OVERVIEW_LIMIT_FEATURED))}"`,
+    `data-overview="${escapeHtml(m.overview.slice(0, OVERVIEW_LIMIT_DATA_ATTR))}"`,
     `data-rating="${m.vote_average}"`,
     `data-poster="${posterUrl(m.poster_path, "w500")}"`,
     `data-date="${m.release_date}"`,
     `data-cast="${escapeHtml(m.cast.join(", "))}"`,
     `data-director="${escapeHtml(m.director)}"`,
+    `data-genres="${escapeHtml(m.genres.join(", "))}"`,
     `data-tickets="${marcusUrl(m.title)}"`,
+    `data-tmdb="${tmdbUrl(m.id)}"`,
   ].join(" ");
 }
 
-// top 5 movies by popularity
 export function renderFeatured(movies: Movie[]) {
   const top = [...movies].sort((a, b) => b.popularity - a.popularity).slice(0, MAX_FEATURED);
   if (!top.length) return "";
@@ -63,8 +94,7 @@ export function renderFeatured(movies: Movie[]) {
   ].join("");
 }
 
-// 7-column calendar grid
-export function renderCalendarGrid(year: number, month: number, moviesByDate: Map<string, Movie[]>) {
+export function renderCalendarGrid(year: number, month: number, moviesByDate: Record<string, Movie[]>) {
   const firstDay = new Date(year, month - 1, 1).getDay();
   const lastDate = new Date(year, month, 0).getDate();
   const today = new Date();
@@ -74,20 +104,17 @@ export function renderCalendarGrid(year: number, month: number, moviesByDate: Ma
 
   const parts: string[] = ['<div class="calendar-grid">'];
 
-  // day-of-week headers
   for (const d of DAY_NAMES) {
     parts.push(`<div class="day-header">${d}</div>`);
   }
 
-  // leading empty cells
   for (let i = 0; i < firstDay; i++) {
     parts.push('<div class="day-cell empty"></div>');
   }
 
-  // day cells
   for (let d = 1; d <= lastDate; d++) {
     const key = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    const movies = moviesByDate.get(key) || [];
+    const movies = moviesByDate[key] || [];
     const isToday = d === todayDate;
 
     const cls = ["day-cell", movies.length ? "has-movies" : "", isToday ? "today" : ""]
@@ -126,9 +153,9 @@ const EMPTY_STATE_SVG = `<svg class="empty-icon" width="120" height="120" viewBo
   <path d="M45 50 L45 70 L65 60 Z" fill="currentColor" opacity="0.25"/>
 </svg>`;
 
-// list view grouped by date
-export function renderTimeline(moviesByDate: Map<string, Movie[]>) {
-  if (!moviesByDate.size) {
+export function renderTimeline(moviesByDate: Record<string, Movie[]>) {
+  const dates = Object.keys(moviesByDate).sort();
+  if (!dates.length) {
     return `<div class="empty-state">
       ${EMPTY_STATE_SVG}
       <p class="empty-title">No movie releases this month.</p>
@@ -138,8 +165,8 @@ export function renderTimeline(moviesByDate: Map<string, Movie[]>) {
 
   const parts: string[] = ['<div class="timeline-wrap">'];
 
-  for (const dateStr of [...moviesByDate.keys()].sort()) {
-    const movies = moviesByDate.get(dateStr)!;
+  for (const dateStr of dates) {
+    const movies = moviesByDate[dateStr] || [];
 
     parts.push('<div>');
     parts.push(`<h3 class="timeline-group-header">${longDate(dateStr)}</h3>`);
@@ -147,9 +174,13 @@ export function renderTimeline(moviesByDate: Map<string, Movie[]>) {
 
     for (const m of movies) {
       const esc = escapeHtml(m.title);
-      const overview = m.overview.length > OVERVIEW_LIMIT_TIMELINE
-        ? escapeHtml(m.overview.slice(0, OVERVIEW_LIMIT_TIMELINE)) + "..."
-        : escapeHtml(m.overview);
+      const overview = escapeHtml(m.overview);
+
+      // Check if tickets are likely available (within ~6 weeks of today)
+      const releaseDate = new Date(m.release_date + "T00:00:00");
+      const now = new Date();
+      const daysUntil = (releaseDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+      const ticketsLikely = daysUntil <= 42 && daysUntil >= -14;
 
       parts.push('<div class="card movie-card">');
       parts.push('<div class="card-top">');
@@ -159,11 +190,19 @@ export function renderTimeline(moviesByDate: Map<string, Movie[]>) {
       parts.push(`<h4 class="card-title">${esc}</h4>`);
       if (m.vote_average > 0) parts.push(`<span class="card-rating">★ ${m.vote_average.toFixed(1)}</span>`);
       parts.push('</div>');
-      if (m.director) parts.push(`<span class="card-meta">Directed by ${escapeHtml(m.director)}</span>`);
+      if (m.genres.length) parts.push(`<span class="card-genres">${escapeHtml(m.genres.join(" / "))}</span>`);
       if (m.cast.length) parts.push(`<span class="card-meta">${escapeHtml(m.cast.join(", "))}</span>`);
+      // Overview inside card-details (shown here on desktop via CSS, hidden on mobile)
+      if (overview) parts.push(`<p class="card-overview card-overview-inline">${overview}</p>`);
       parts.push('</div></div>');
-      parts.push(`<p class="card-overview">${overview}</p>`);
-      parts.push(`<a class="tickets-btn btn btn-warning rounded-pill fw-bold" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Get Tickets</a>`);
+      // Overview outside card-top (shown on mobile, hidden on desktop)
+      if (overview) parts.push(`<p class="card-overview card-overview-block">${overview}</p>`);
+      parts.push('<div class="card-actions">');
+      if (ticketsLikely) {
+        parts.push(`<a class="tickets-btn btn btn-warning btn-sm rounded-pill fw-bold" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Tickets</a>`);
+      }
+      parts.push(`<a class="tmdb-link" href="${tmdbUrl(m.id)}" target="_blank" rel="noopener">Details &rsaquo;</a>`);
+      parts.push('</div>');
       parts.push('</div>');
     }
     parts.push('</div></div>');

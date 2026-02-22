@@ -1,13 +1,19 @@
 import { Modal } from "bootstrap";
 import { MONTH_NAMES, DAY_NAMES, longDate } from "../lib/constants";
+import { renderFeatured, renderCalendarGrid, renderTimeline, type Movie } from "./render";
 
-let now = new Date();
+const now = new Date();
 let year = +(new URLSearchParams(location.search).get("year") ?? now.getFullYear());
 let month = +(new URLSearchParams(location.search).get("month") ?? now.getMonth() + 1);
 
+// track whether current load was triggered by popstate (back/forward)
+let isPopstate = false;
+
+// abort controller for cancelling stale fetch requests
+let fetchController: AbortController | null = null;
+
 const $ = (id: string) => document.getElementById(id)!;
 const monthTitle = $("month-title");
-const mobileMonthTitle = $("mobile-month-title");
 const featured = $("featured-view");
 const calendar = $("calendar-view");
 const timeline = $("timeline-view");
@@ -17,18 +23,12 @@ const errorEl = $("error-banner");
 let currentView = localStorage.getItem("calendarView") || "timeline";
 setView(currentView);
 
-// Desktop controls
+// Controls (single nav)
 $("view-toggle-btn").addEventListener("click", () => toggleView());
 $("prev-btn").addEventListener("click", () => go(-1));
 $("next-btn").addEventListener("click", () => go(1));
 $("today-btn").addEventListener("click", goToday);
 $("title-btn").addEventListener("click", goToday);
-
-// Mobile controls
-$("mobile-view-toggle-btn").addEventListener("click", () => toggleView());
-$("mobile-prev-btn").addEventListener("click", () => go(-1));
-$("mobile-next-btn").addEventListener("click", () => go(1));
-$("mobile-today-btn").addEventListener("click", goToday);
 
 function toggleView() {
   setView(currentView === "calendar" ? "timeline" : "calendar");
@@ -38,122 +38,91 @@ function setView(v: string) {
   currentView = v;
   document.body.classList.toggle("view-timeline", v === "timeline");
   localStorage.setItem("calendarView", v);
-
-  // highlight view toggle buttons when in list/timeline mode (it's a list icon)
-  const isTimeline = v === "timeline";
-  $("view-toggle-btn").classList.toggle("active", isTimeline);
-  $("mobile-view-toggle-btn").classList.toggle("active", isTimeline);
+  $("view-toggle-btn").classList.toggle("active", v === "timeline");
 }
 
 // today button: show today's date number and highlight when on current month
 function updateTodayHighlight() {
   const todayNow = new Date();
-  const dayNum = String(todayNow.getDate());
-  $("today-date-num").textContent = dayNum;
-  $("mobile-today-date-num").textContent = dayNum;
+  $("today-date-num").textContent = String(todayNow.getDate());
 
   const isCurrentMonth = year === todayNow.getFullYear() && month === todayNow.getMonth() + 1;
   $("today-btn").classList.toggle("active", isCurrentMonth);
-  $("mobile-today-btn").classList.toggle("active", isCurrentMonth);
 }
 
-// set initial today date number
 updateTodayHighlight();
 
 // navigation
 function goToday() {
-  now = new Date();
-  year = now.getFullYear();
-  month = now.getMonth() + 1;
-  closeMonthDropdown();
-  closeMonthOverlay();
+  const todayNow = new Date();
+  year = todayNow.getFullYear();
+  month = todayNow.getMonth() + 1;
+  closeMonthPicker();
   load();
 }
 
 function go(dir: number) {
   month += dir;
   if (month > 12) { month = 1; year++; }
-  if (month < 1)  { month = 12; year--; }
+  if (month < 1) { month = 12; year--; }
   load();
 }
 
-// month dropdown (desktop)
-const monthDropdown = $("month-dropdown");
-
-$("month-title").addEventListener("click", (e) => {
-  e.stopPropagation();
-  if (monthDropdown.classList.contains("open")) {
-    closeMonthDropdown();
-    return;
-  }
-  openMonthDropdown();
-});
-
-function openMonthDropdown() {
-  const todayMonth = new Date().getMonth() + 1;
-  const todayYear = new Date().getFullYear();
-
-  // Build dropdown buttons safely using DOM methods
-  monthDropdown.textContent = "";
-  MONTH_NAMES.forEach((name, i) => {
-    const m = i + 1;
-    const btn = document.createElement("button");
-    btn.dataset.month = String(m);
-    btn.textContent = name.slice(0, 3);
-    if (m === month) btn.classList.add("active");
-    else if (m === todayMonth && year === todayYear) btn.classList.add("current");
-    monthDropdown.appendChild(btn);
-  });
-  monthDropdown.classList.add("open");
-}
-
-monthDropdown.addEventListener("click", (e) => {
-  const btn = (e.target as HTMLElement).closest("button");
-  if (!btn) return;
-  const m = +(btn.dataset.month || "");
-  if (m) {
-    month = m;
-    closeMonthDropdown();
-    load();
-  }
-});
-
-function closeMonthDropdown() {
-  monthDropdown.classList.remove("open");
-}
-
-// month overlay (mobile fullscreen picker)
+// month picker (unified — overlay/bottom-sheet on mobile, positioned near pill on desktop)
 const monthOverlay = $("month-overlay");
 const monthOverlayGrid = $("month-overlay-grid");
 
-$("mobile-month-title").addEventListener("click", (e) => {
+$("month-title").addEventListener("click", (e) => {
   e.stopPropagation();
-  openMonthOverlay();
+  if (monthOverlay.classList.contains("open")) {
+    closeMonthPicker();
+    return;
+  }
+  openMonthPicker();
 });
 
-$("month-overlay-backdrop").addEventListener("click", () => {
-  closeMonthOverlay();
+$("month-overlay-backdrop").addEventListener("click", () => closeMonthPicker());
+
+// Year navigation within the picker
+let pickerYear = year;
+
+$("year-prev-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  pickerYear--;
+  renderPickerGrid();
 });
 
-function openMonthOverlay() {
+$("year-next-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  pickerYear++;
+  renderPickerGrid();
+});
+
+function openMonthPicker() {
+  pickerYear = year;
+  renderPickerGrid();
+  monthOverlay.classList.add("open");
+}
+
+function renderPickerGrid() {
   const todayMonth = new Date().getMonth() + 1;
   const todayYear = new Date().getFullYear();
 
-  // Build overlay buttons safely using DOM methods
+  $("overlay-year-label").textContent = String(pickerYear);
+
   monthOverlayGrid.textContent = "";
   MONTH_NAMES.forEach((name, i) => {
     const m = i + 1;
     const btn = document.createElement("button");
     btn.dataset.month = String(m);
-    btn.textContent = name;
-    if (m === month) btn.classList.add("active");
-    else if (m === todayMonth && year === todayYear) btn.classList.add("current");
+    btn.textContent = name.slice(0, 3);
+    if (m === month && pickerYear === year) btn.classList.add("active");
+    else if (m === todayMonth && pickerYear === todayYear) btn.classList.add("current");
     monthOverlayGrid.appendChild(btn);
   });
-  monthOverlay.classList.add("open");
 }
 
-function closeMonthOverlay() {
+function closeMonthPicker() {
   monthOverlay.classList.remove("open");
 }
 
@@ -163,31 +132,34 @@ monthOverlayGrid.addEventListener("click", (e) => {
   const m = +(btn.dataset.month || "");
   if (m) {
     month = m;
-    closeMonthOverlay();
+    year = pickerYear;
+    closeMonthPicker();
     load();
   }
 });
 
-// sync month title text across desktop + mobile
-function updateMonthTitles(text: string) {
+// update month title text
+function updateMonthTitle(text: string) {
   monthTitle.textContent = text;
-  mobileMonthTitle.textContent = text;
 }
 
 // skeletons shown while fetching
 function skeletons() {
-  featured.innerHTML =
+  const featuredSkel =
     '<div class="featured">' +
     '<div class="skeleton-text-sm skel-w32" style="margin-bottom:16px"></div>' +
     '<div class="skel-featured-grid">' +
     '<div class="skeleton-featured"></div>'.repeat(5) +
     '</div></div>';
+  // Using our own skeleton HTML (trusted content, not user input)
+  featured.innerHTML = featuredSkel;
 
   const headers = DAY_NAMES.map(d => `<div class="day-header">${d}</div>`).join('');
-  calendar.innerHTML =
+  const calendarSkel =
     '<div class="calendar-grid">' + headers +
     '<div class="day-cell" style="animation:none"><div class="skeleton-text-sm skel-w16" style="margin-top:8px"></div></div>'.repeat(35) +
     '</div>';
+  calendar.innerHTML = calendarSkel;
 
   const card =
     '<div class="skel-card">' +
@@ -203,6 +175,11 @@ function skeletons() {
 }
 
 async function load() {
+  // cancel any in-flight request
+  if (fetchController) fetchController.abort();
+  fetchController = new AbortController();
+  const signal = fetchController.signal;
+
   // fade out then swap to skeletons
   for (const el of [featured, calendar, timeline]) el.classList.add("fade-out");
   await new Promise(r => setTimeout(r, 200));
@@ -211,15 +188,23 @@ async function load() {
   for (const el of [featured, calendar, timeline]) el.classList.remove("fade-out");
 
   try {
-    const res = await fetch(`/api/calendar?year=${year}&month=${month}`);
-    const data = await res.json();
+    const res = await fetch(`/api/calendar?year=${year}&month=${month}`, { signal });
+    const data: {
+      title: string;
+      year: number;
+      month: number;
+      movies: Movie[];
+      moviesByDate: Record<string, Movie[]>;
+      error: string;
+    } = await res.json();
 
-    updateMonthTitles(data.title);
+    updateMonthTitle(data.title);
     updateTodayHighlight();
-    // Server-rendered HTML from our own API (trusted content)
-    featured.innerHTML = data.featuredHtml;
-    calendar.innerHTML = data.calendarHtml;
-    timeline.innerHTML = data.timelineHtml;
+
+    // Render HTML from our own trusted API data via client-side render functions
+    featured.innerHTML = renderFeatured(data.movies);
+    calendar.innerHTML = renderCalendarGrid(data.year, data.month, data.moviesByDate);
+    timeline.innerHTML = renderTimeline(data.moviesByDate);
 
     for (const el of [featured, calendar, timeline]) el.classList.add("fade-in-content");
     setTimeout(() => {
@@ -227,18 +212,24 @@ async function load() {
     }, 400);
 
     if (data.error) {
-      errorEl.textContent = "";
-      const link = document.createElement("span");
-      link.textContent = data.error;
-      errorEl.appendChild(link);
+      errorEl.textContent = data.error;
       errorEl.className = "error-banner alert alert-warning";
     } else {
       errorEl.textContent = "";
       errorEl.className = "";
     }
-    history.pushState(null, "", `/?year=${year}&month=${month}`);
+
+    // avoid duplicate history entries when navigating back/forward
+    if (isPopstate) {
+      isPopstate = false;
+    } else {
+      history.pushState(null, "", `/?year=${year}&month=${month}`);
+    }
   } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") return;
     console.error("load failed:", err);
+    errorEl.textContent = "Failed to load movie data. Please try again.";
+    errorEl.className = "error-banner alert alert-danger";
   }
 }
 
@@ -257,9 +248,9 @@ function getMovieModal() {
 document.addEventListener("click", e => {
   const t = e.target as HTMLElement;
 
-  // close month dropdown on outside click
-  if (!t.closest("#month-dropdown") && !t.closest("#month-title")) {
-    closeMonthDropdown();
+  // close month picker on outside click
+  if (!t.closest("#month-overlay") && !t.closest("#month-title")) {
+    closeMonthPicker();
   }
 
   const poster = t.closest(".mini-poster") || t.closest(".featured-card");
@@ -272,8 +263,7 @@ document.addEventListener("click", e => {
 
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
-    closeMonthDropdown();
-    closeMonthOverlay();
+    closeMonthPicker();
   }
 });
 
@@ -287,64 +277,73 @@ function openPopover(el: HTMLElement) {
   modalBody.textContent = "";
 
   const wrapper = document.createElement("div");
-  wrapper.className = "d-flex gap-3 popover-inner";
+  wrapper.className = "popover-inner";
+
+  // Left column: poster
+  const leftCol = document.createElement("div");
+  leftCol.className = "popover-left";
 
   const img = document.createElement("img");
   img.className = "popover-poster rounded-3";
   img.src = d.poster || "";
   img.alt = title;
-  wrapper.appendChild(img);
+  leftCol.appendChild(img);
 
-  const details = document.createElement("div");
-  details.className = "d-flex flex-column gap-2";
+  wrapper.appendChild(leftCol);
+
+  // Right column: title, date, genre + rating, description, actions
+  const rightCol = document.createElement("div");
+  rightCol.className = "popover-right";
 
   const titleEl = document.createElement("div");
   titleEl.className = "popover-title";
   titleEl.textContent = title;
-  details.appendChild(titleEl);
+  rightCol.appendChild(titleEl);
 
   const dateEl = document.createElement("div");
-  dateEl.className = "text-secondary small";
+  dateEl.className = "popover-meta";
   dateEl.textContent = date;
-  details.appendChild(dateEl);
+  rightCol.appendChild(dateEl);
 
-  if (d.director) {
-    const dirEl = document.createElement("div");
-    dirEl.className = "text-secondary small";
-    dirEl.textContent = `Directed by ${d.director}`;
-    details.appendChild(dirEl);
+  if (d.genres) {
+    const genreEl = document.createElement("div");
+    genreEl.className = "card-genres";
+    genreEl.textContent = d.genres;
+    rightCol.appendChild(genreEl);
   }
 
-  if (d.cast) {
-    const castEl = document.createElement("div");
-    castEl.className = "text-secondary small";
-    castEl.textContent = d.cast;
-    details.appendChild(castEl);
+  if (d.overview) {
+    const overview = document.createElement("p");
+    overview.className = "popover-overview";
+    overview.textContent = d.overview;
+    rightCol.appendChild(overview);
   }
 
-  if (ratingVal > 0) {
-    const ratingEl = document.createElement("div");
-    ratingEl.className = "fw-semibold text-warning mb-1";
-    ratingEl.textContent = `★ ${ratingVal.toFixed(1)}`;
-    details.appendChild(ratingEl);
-  }
-
-  const overview = document.createElement("p");
-  overview.className = "popover-overview mb-0";
-  overview.textContent = d.overview || "";
-  details.appendChild(overview);
+  const actionsEl = document.createElement("div");
+  actionsEl.className = "card-actions";
 
   if (d.tickets) {
     const ticketLink = document.createElement("a");
-    ticketLink.className = "tickets-btn btn btn-warning rounded-pill fw-bold mt-2";
+    ticketLink.className = "tickets-btn btn btn-warning btn-sm rounded-pill fw-bold";
     ticketLink.href = d.tickets;
     ticketLink.target = "_blank";
     ticketLink.rel = "noopener";
-    ticketLink.textContent = "Get Tickets";
-    details.appendChild(ticketLink);
+    ticketLink.textContent = "Tickets";
+    actionsEl.appendChild(ticketLink);
   }
 
-  wrapper.appendChild(details);
+  if (d.tmdb) {
+    const tmdbLink = document.createElement("a");
+    tmdbLink.className = "tmdb-link";
+    tmdbLink.href = d.tmdb;
+    tmdbLink.target = "_blank";
+    tmdbLink.rel = "noopener";
+    tmdbLink.innerHTML = "Details &rsaquo;";
+    actionsEl.appendChild(tmdbLink);
+  }
+
+  rightCol.appendChild(actionsEl);
+  wrapper.appendChild(rightCol);
   modalBody.appendChild(wrapper);
 
   getMovieModal().show();
@@ -354,17 +353,22 @@ function openPopover(el: HTMLElement) {
 window.addEventListener("popstate", () => {
   const p = new URLSearchParams(location.search);
   const y = +(p.get("year") || ""), m = +(p.get("month") || "");
-  if (y && m) { year = y; month = m; load(); }
+  if (y && m) {
+    year = y;
+    month = m;
+    isPopstate = true;
+    load();
+  }
 });
 
-// navbar shadow on scroll
-const nav = document.querySelector(".navbar-header");
+// navbar shadow on scroll (only on desktop where nav is at top)
+const navEl = document.querySelector(".navbar-header");
 let scrollTick = false;
 window.addEventListener("scroll", () => {
   if (scrollTick) return;
   scrollTick = true;
   requestAnimationFrame(() => {
-    nav?.classList.toggle("scrolled", scrollY > 20);
+    navEl?.classList.toggle("scrolled", scrollY > 20);
     scrollTick = false;
   });
 });

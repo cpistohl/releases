@@ -102,43 +102,45 @@ body::before {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  cursor: pointer;
 }
 
-/* ── navbar ── */
+/* ── navbar (single responsive nav) ── */
+/* Mobile: fixed at bottom */
 .navbar-header {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
-  background: rgba(10, 10, 15, 0.85) !important;
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid var(--surface-border) !important;
+  background: rgba(10, 10, 15, 0.92);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-top: 1px solid var(--surface-border);
+  border-bottom: none;
   transition: box-shadow 0.3s ease;
   padding: 0;
-}
-.navbar-header.scrolled {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .nav-inner {
   max-width: 80rem;
   margin: 0 auto;
   padding: 10px 16px;
-  display: flex !important;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex;
   align-items: center;
-  justify-content: center !important;
-  flex-wrap: nowrap !important;
+  justify-content: center;
+  flex-wrap: nowrap;
   width: 100%;
 }
 
-/* ── nav controls (circle + pill + circle) ── */
+/* Hide page title on mobile (nav is at bottom, title doesn't make sense there) */
+.page-title { display: none; }
+
 .nav-controls {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 12px;
-}
-.nav-controls.desktop-controls {
-  display: none;
 }
 
 .nav-btn-circle {
@@ -180,7 +182,7 @@ body::before {
   top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 800;
   line-height: 1;
   color: currentColor;
@@ -235,62 +237,10 @@ body::before {
 }
 .pill-month-text:hover { color: var(--accent); }
 
-/* ── mobile bottom nav (shown by default, hidden on desktop) ── */
-.mobile-bottom-nav {
-  display: flex;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: rgba(10, 10, 15, 0.92);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  border-top: 1px solid var(--surface-border);
-  padding: 10px 20px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
+/* ── month dropdown (hidden — replaced by overlay) ── */
+.month-dropdown { display: none; }
 
-/* ── month dropdown (desktop) ── */
-.month-dropdown {
-  display: none;
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: 12px;
-  padding: 6px;
-  z-index: 100;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.2);
-  animation: dropdown-in 0.15s ease;
-}
-.month-dropdown.open {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-}
-.month-dropdown button {
-  padding: 8px 12px !important;
-  border-radius: 8px !important;
-  font-size: 13px;
-  color: var(--text-muted) !important;
-  border: none !important;
-  background: none !important;
-  white-space: nowrap;
-  box-shadow: none !important;
-  transition: background 0.15s, color 0.15s;
-  cursor: pointer;
-}
-.month-dropdown button:hover { background: var(--surface-hover) !important; color: var(--text) !important; }
-.month-dropdown button.active { background: var(--accent) !important; color: var(--bg) !important; font-weight: 600; }
-.month-dropdown button.current { color: var(--accent) !important; font-weight: 500; }
-
-/* ── month overlay (mobile fullscreen picker) ── */
+/* ── month overlay (bottom sheet on mobile, centered panel on desktop) ── */
 .month-overlay {
   display: none;
   position: fixed;
@@ -317,16 +267,37 @@ body::before {
   border-radius: 20px 20px 0 0;
   padding: 24px 20px;
   padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
 .month-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
   font-size: 18px;
   font-weight: 700;
   color: var(--text);
   text-align: center;
   margin-bottom: 20px;
 }
+
+.year-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+}
+.year-arrow:hover { background: rgba(255, 255, 255, 0.14); color: var(--text); }
+.year-arrow:active { transform: scale(0.9); }
 
 .month-overlay-grid {
   display: grid;
@@ -526,19 +497,45 @@ body::before {
 }
 .timeline-cards { display: flex; flex-direction: column; gap: 12px; }
 
+/* Genre tag styling */
+.card-genres {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+/* Card action row */
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.card-actions .tickets-btn { text-align: center; }
+
+/* TMDB link */
+.tmdb-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.tmdb-link:hover { color: var(--accent); }
+
 .movie-card {
   border-radius: 16px !important;
   border: 1px solid var(--surface-border) !important;
   background: var(--surface) !important;
   transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
+  padding: 12px;
 }
 .movie-card:hover {
   background: var(--surface-hover) !important;
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.3), 0 16px 48px rgba(0, 0, 0, 0.15) !important;
-}
-.movie-card {
-  padding: 12px;
 }
 .card-top {
   display: flex;
@@ -558,8 +555,19 @@ body::before {
 .card-title { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -0.025em; margin-bottom: 0 !important; color: var(--text) !important; }
 .card-rating { font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
 .card-meta { font-size: 12px; color: var(--text-muted); line-height: 1.375; margin-bottom: 0; }
-.card-overview { font-size: 13px; line-height: 1.625; color: var(--text-dim); margin: 12px 0 0; }
-.movie-card > .tickets-btn { display: block; width: 100%; text-align: center; margin-top: 12px; box-shadow: none !important; }
+.card-overview {
+  font-size: 13px;
+  line-height: 1.625;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Mobile: show block overview (below poster), hide inline (inside details) */
+.card-overview-inline { display: none; }
+.card-overview-block { display: block; }
 .tickets-btn { box-shadow: none !important; }
 
 /* ── Bootstrap modal overrides ── */
@@ -580,9 +588,61 @@ body::before {
 }
 .modal-backdrop.show { opacity: 1; }
 
-.popover-poster { width: 140px; height: 210px; object-fit: cover; flex-shrink: 0; border-radius: 12px; }
-.popover-title { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; }
-.popover-overview { font-size: 14px; line-height: 1.625; color: var(--text-dim); }
+/* Popover two-column layout */
+.popover-inner {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.popover-left {
+  flex-shrink: 0;
+  width: 140px;
+}
+.popover-poster {
+  width: 140px;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.popover-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.popover-rating {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.popover-right {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding-right: 24px;
+}
+.popover-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+.popover-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.popover-overview {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 /* ── empty state ── */
 .empty-state { padding: 80px 0; text-align: center; }
@@ -671,6 +731,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 @keyframes fade-out     { from { opacity: 1 } to { opacity: 0 } }
 @keyframes fade-in-up   { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
 @keyframes scale-in     { from { opacity: 0; transform: scale(.95) } to { opacity: 1; transform: none } }
+@keyframes scale-in-center { from { opacity: 0; transform: translate(-50%, -50%) scale(.95) } to { opacity: 1; transform: translate(-50%, -50%) } }
 @keyframes scale-out    { from { opacity: 1; transform: none } to { opacity: 0; transform: scale(.95) } }
 @keyframes stagger-in   { from { opacity: 0; transform: scale(.95) } to { opacity: 1; transform: none } }
 @keyframes shimmer      { from { background-position: -1000px 0 } to { background-position: 1000px 0 } }
@@ -679,17 +740,52 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
   50%      { box-shadow: 0 0 0 6px transparent, 0 0 16px var(--accent-glow); }
 }
 
-/* ── responsive: desktop (≥641px) ── */
+/* ── responsive: desktop (>=641px) ── */
 @media (min-width: 641px) {
+  /* Move nav to top on desktop */
+  .navbar-header {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    border-top: none;
+    border-bottom: 1px solid var(--surface-border);
+    background: rgba(10, 10, 15, 0.85);
+  }
+  .navbar-header.scrolled {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
   .nav-inner {
     padding: 12px 24px;
-    justify-content: space-between !important;
+    padding-bottom: 12px;
+    justify-content: space-between;
   }
-  .page-title { font-size: 22px; }
-  .nav-controls.desktop-controls { display: flex !important; }
-  .mobile-bottom-nav { display: none !important; }
+
+  .page-title { display: block; font-size: 22px; }
+
   .main-content { padding: 28px 24px; }
-  .month-overlay { display: none !important; }
+
+  /* On desktop, overlay panel is centered instead of bottom-sheet */
+  .month-overlay-panel {
+    position: absolute;
+    bottom: auto;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    border-radius: 20px;
+    max-width: 360px;
+    width: 90%;
+    padding-bottom: 24px;
+    animation: scale-in-center 0.2s ease forwards;
+  }
+
+  /* Timeline cards in multi-column grid on desktop */
+  .timeline-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
 
   .featured-grid { gap: 16px; }
   .calendar-grid { border-radius: 16px; }
@@ -707,5 +803,11 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
   .card-details { gap: 6px; }
   .card-title { font-size: 17px !important; }
   .card-meta { font-size: 14px; }
-  .card-overview { font-size: 14px; }
+  .card-overview { font-size: 14px; color: var(--text-muted); }
+  .card-genres { font-size: 13px; }
+  .tmdb-link { font-size: 14px; }
+
+  /* Desktop: show overview inline (inside details next to poster), hide block */
+  .card-overview-inline { display: block; }
+  .card-overview-block { display: none; }
 }
