@@ -7,37 +7,66 @@ let month = +(new URLSearchParams(location.search).get("month") ?? now.getMonth(
 
 const $ = (id: string) => document.getElementById(id)!;
 const monthTitle = $("month-title");
+const mobileMonthTitle = $("mobile-month-title");
 const featured = $("featured-view");
 const calendar = $("calendar-view");
 const timeline = $("timeline-view");
 const errorEl = $("error-banner");
 
-// view toggle
-const viewBtns = document.querySelectorAll<HTMLButtonElement>(".view-btn");
-setView(localStorage.getItem("calendarView") || "calendar");
+// view toggle — default to timeline (list view)
+let currentView = localStorage.getItem("calendarView") || "timeline";
+setView(currentView);
 
-for (const btn of viewBtns) {
-  btn.addEventListener("click", () => setView(btn.dataset.view!));
-}
-
-function setView(v: string) {
-  document.body.classList.toggle("view-timeline", v === "timeline");
-  viewBtns.forEach(b => b.classList.toggle("active", b.dataset.view === v));
-  $("view-indicator")?.classList.toggle("timeline", v === "timeline");
-  localStorage.setItem("calendarView", v);
-}
-
-// navigation
+// Desktop controls
+$("view-toggle-btn").addEventListener("click", () => toggleView());
 $("prev-btn").addEventListener("click", () => go(-1));
 $("next-btn").addEventListener("click", () => go(1));
 $("today-btn").addEventListener("click", goToday);
 $("title-btn").addEventListener("click", goToday);
 
+// Mobile controls
+$("mobile-view-toggle-btn").addEventListener("click", () => toggleView());
+$("mobile-prev-btn").addEventListener("click", () => go(-1));
+$("mobile-next-btn").addEventListener("click", () => go(1));
+$("mobile-today-btn").addEventListener("click", goToday);
+
+function toggleView() {
+  setView(currentView === "calendar" ? "timeline" : "calendar");
+}
+
+function setView(v: string) {
+  currentView = v;
+  document.body.classList.toggle("view-timeline", v === "timeline");
+  localStorage.setItem("calendarView", v);
+
+  // highlight view toggle buttons when in list/timeline mode (it's a list icon)
+  const isTimeline = v === "timeline";
+  $("view-toggle-btn").classList.toggle("active", isTimeline);
+  $("mobile-view-toggle-btn").classList.toggle("active", isTimeline);
+}
+
+// today button: show today's date number and highlight when on current month
+function updateTodayHighlight() {
+  const todayNow = new Date();
+  const dayNum = String(todayNow.getDate());
+  $("today-date-num").textContent = dayNum;
+  $("mobile-today-date-num").textContent = dayNum;
+
+  const isCurrentMonth = year === todayNow.getFullYear() && month === todayNow.getMonth() + 1;
+  $("today-btn").classList.toggle("active", isCurrentMonth);
+  $("mobile-today-btn").classList.toggle("active", isCurrentMonth);
+}
+
+// set initial today date number
+updateTodayHighlight();
+
+// navigation
 function goToday() {
   now = new Date();
   year = now.getFullYear();
   month = now.getMonth() + 1;
   closeMonthDropdown();
+  closeMonthOverlay();
   load();
 }
 
@@ -48,33 +77,39 @@ function go(dir: number) {
   load();
 }
 
-// month dropdown
+// month dropdown (desktop)
 const monthDropdown = $("month-dropdown");
 
 $("month-title").addEventListener("click", (e) => {
   e.stopPropagation();
-
   if (monthDropdown.classList.contains("open")) {
     closeMonthDropdown();
     return;
   }
+  openMonthDropdown();
+});
 
+function openMonthDropdown() {
   const todayMonth = new Date().getMonth() + 1;
   const todayYear = new Date().getFullYear();
-  monthDropdown.innerHTML = MONTH_NAMES.map((name, i) => {
+
+  // Build dropdown buttons safely using DOM methods
+  monthDropdown.textContent = "";
+  MONTH_NAMES.forEach((name, i) => {
     const m = i + 1;
-    const isActive = m === month;
-    const isCurrent = m === todayMonth && year === todayYear;
-    const cls = isActive ? "active" : isCurrent ? "current" : "";
-    return `<button data-month="${m}" class="${cls}">${name.slice(0, 3)}</button>`;
-  }).join("");
+    const btn = document.createElement("button");
+    btn.dataset.month = String(m);
+    btn.textContent = name.slice(0, 3);
+    if (m === month) btn.classList.add("active");
+    else if (m === todayMonth && year === todayYear) btn.classList.add("current");
+    monthDropdown.appendChild(btn);
+  });
   monthDropdown.classList.add("open");
-});
+}
 
 monthDropdown.addEventListener("click", (e) => {
   const btn = (e.target as HTMLElement).closest("button");
   if (!btn) return;
-
   const m = +(btn.dataset.month || "");
   if (m) {
     month = m;
@@ -85,6 +120,58 @@ monthDropdown.addEventListener("click", (e) => {
 
 function closeMonthDropdown() {
   monthDropdown.classList.remove("open");
+}
+
+// month overlay (mobile fullscreen picker)
+const monthOverlay = $("month-overlay");
+const monthOverlayGrid = $("month-overlay-grid");
+
+$("mobile-month-title").addEventListener("click", (e) => {
+  e.stopPropagation();
+  openMonthOverlay();
+});
+
+$("month-overlay-backdrop").addEventListener("click", () => {
+  closeMonthOverlay();
+});
+
+function openMonthOverlay() {
+  const todayMonth = new Date().getMonth() + 1;
+  const todayYear = new Date().getFullYear();
+
+  // Build overlay buttons safely using DOM methods
+  monthOverlayGrid.textContent = "";
+  MONTH_NAMES.forEach((name, i) => {
+    const m = i + 1;
+    const btn = document.createElement("button");
+    btn.dataset.month = String(m);
+    btn.textContent = name;
+    if (m === month) btn.classList.add("active");
+    else if (m === todayMonth && year === todayYear) btn.classList.add("current");
+    monthOverlayGrid.appendChild(btn);
+  });
+  monthOverlay.classList.add("open");
+}
+
+function closeMonthOverlay() {
+  monthOverlay.classList.remove("open");
+}
+
+monthOverlayGrid.addEventListener("click", (e) => {
+  const btn = (e.target as HTMLElement).closest("button");
+  if (!btn) return;
+  const m = +(btn.dataset.month || "");
+  if (m) {
+    month = m;
+    closeMonthOverlay();
+    load();
+  }
+});
+
+// sync month title text across desktop + mobile
+function updateMonthTitles(text: string) {
+  monthTitle.textContent = text;
+  mobileMonthTitle.textContent = text;
 }
 
 // skeletons shown while fetching
@@ -127,7 +214,9 @@ async function load() {
     const res = await fetch(`/api/calendar?year=${year}&month=${month}`);
     const data = await res.json();
 
-    monthTitle.textContent = data.title;
+    updateMonthTitles(data.title);
+    updateTodayHighlight();
+    // Server-rendered HTML from our own API (trusted content)
     featured.innerHTML = data.featuredHtml;
     calendar.innerHTML = data.calendarHtml;
     timeline.innerHTML = data.timelineHtml;
@@ -138,10 +227,13 @@ async function load() {
     }, 400);
 
     if (data.error) {
-      errorEl.innerHTML = data.error;
+      errorEl.textContent = "";
+      const link = document.createElement("span");
+      link.textContent = data.error;
+      errorEl.appendChild(link);
       errorEl.className = "error-banner alert alert-warning";
     } else {
-      errorEl.innerHTML = "";
+      errorEl.textContent = "";
       errorEl.className = "";
     }
     history.pushState(null, "", `/?year=${year}&month=${month}`);
@@ -179,7 +271,10 @@ document.addEventListener("click", e => {
 });
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { closeMonthDropdown(); }
+  if (e.key === "Escape") {
+    closeMonthDropdown();
+    closeMonthOverlay();
+  }
 });
 
 function openPopover(el: HTMLElement) {
@@ -187,24 +282,70 @@ function openPopover(el: HTMLElement) {
   const title = d.title || "";
   const date = d.date ? longDate(d.date) : "";
   const ratingVal = d.rating ? parseFloat(d.rating) : 0;
-  const rating = ratingVal > 0
-    ? `<div class="fw-semibold text-warning mb-1">★ ${ratingVal.toFixed(1)}</div>` : "";
-  const tickets = d.tickets
-    ? `<a class="tickets-btn btn btn-warning rounded-pill fw-bold mt-2" href="${d.tickets}" target="_blank" rel="noopener">Get Tickets</a>` : "";
 
-  document.getElementById("movie-modal-body")!.innerHTML = `
-    <div class="d-flex gap-3 popover-inner">
-      <img class="popover-poster rounded-3" src="${d.poster}" alt="${title}" />
-      <div class="d-flex flex-column gap-2">
-        <div class="popover-title">${title}</div>
-        <div class="text-secondary small">${date}</div>
-        ${d.director ? `<div class="text-secondary small">Directed by ${d.director}</div>` : ""}
-        ${d.cast ? `<div class="text-secondary small">${d.cast}</div>` : ""}
-        ${rating}
-        <p class="popover-overview mb-0">${d.overview || ""}</p>
-        ${tickets}
-      </div>
-    </div>`;
+  const modalBody = document.getElementById("movie-modal-body")!;
+  modalBody.textContent = "";
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "d-flex gap-3 popover-inner";
+
+  const img = document.createElement("img");
+  img.className = "popover-poster rounded-3";
+  img.src = d.poster || "";
+  img.alt = title;
+  wrapper.appendChild(img);
+
+  const details = document.createElement("div");
+  details.className = "d-flex flex-column gap-2";
+
+  const titleEl = document.createElement("div");
+  titleEl.className = "popover-title";
+  titleEl.textContent = title;
+  details.appendChild(titleEl);
+
+  const dateEl = document.createElement("div");
+  dateEl.className = "text-secondary small";
+  dateEl.textContent = date;
+  details.appendChild(dateEl);
+
+  if (d.director) {
+    const dirEl = document.createElement("div");
+    dirEl.className = "text-secondary small";
+    dirEl.textContent = `Directed by ${d.director}`;
+    details.appendChild(dirEl);
+  }
+
+  if (d.cast) {
+    const castEl = document.createElement("div");
+    castEl.className = "text-secondary small";
+    castEl.textContent = d.cast;
+    details.appendChild(castEl);
+  }
+
+  if (ratingVal > 0) {
+    const ratingEl = document.createElement("div");
+    ratingEl.className = "fw-semibold text-warning mb-1";
+    ratingEl.textContent = `★ ${ratingVal.toFixed(1)}`;
+    details.appendChild(ratingEl);
+  }
+
+  const overview = document.createElement("p");
+  overview.className = "popover-overview mb-0";
+  overview.textContent = d.overview || "";
+  details.appendChild(overview);
+
+  if (d.tickets) {
+    const ticketLink = document.createElement("a");
+    ticketLink.className = "tickets-btn btn btn-warning rounded-pill fw-bold mt-2";
+    ticketLink.href = d.tickets;
+    ticketLink.target = "_blank";
+    ticketLink.rel = "noopener";
+    ticketLink.textContent = "Get Tickets";
+    details.appendChild(ticketLink);
+  }
+
+  wrapper.appendChild(details);
+  modalBody.appendChild(wrapper);
 
   getMovieModal().show();
 }

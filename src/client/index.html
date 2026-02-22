@@ -22,24 +22,31 @@
 
   <nav class="navbar-header navbar">
     <div class="nav-inner">
-      <button class="app-title nav-title btn" id="title-btn">Releases</button>
-      <div class="nav-center">
-        <div class="nav-month-group">
-          <button class="nav-arrow btn" id="prev-btn" aria-label="Previous month">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="page-title" id="title-btn">Upcoming Releases</span>
+      <div class="nav-controls desktop-controls">
+        <button class="nav-btn-circle" id="view-toggle-btn" aria-label="Toggle view">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 5h12M4 10h12M4 15h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="nav-btn-pill" id="month-pill">
+          <button class="pill-arrow" id="prev-btn" aria-label="Previous month">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <button class="month-title btn" id="month-title"></button>
-          <button class="nav-arrow btn" id="next-btn" aria-label="Next month">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <button class="pill-month-text" id="month-title"></button>
+          <button class="pill-arrow" id="next-btn" aria-label="Next month">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div class="month-dropdown" id="month-dropdown"></div>
         </div>
-        <button class="today-btn btn btn-outline-warning rounded-pill" id="today-btn">Today</button>
-      </div>
-      <div class="view-toggle-container" id="view-toggle">
-        <div class="view-toggle-indicator" id="view-indicator"></div>
-        <button class="view-btn btn active" data-view="calendar">Calendar</button>
-        <button class="view-btn btn" data-view="timeline">List</button>
+        <button class="nav-btn-circle today-btn-icon" id="today-btn" aria-label="Go to today">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="2" y="4" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2 8h16" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M6 2v4M14 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span class="today-date-num" id="today-date-num"></span>
+        </button>
       </div>
     </div>
   </nav>
@@ -57,6 +64,41 @@
         <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="z-index:1"></button>
         <div class="modal-body p-4" id="movie-modal-body"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Mobile bottom nav -->
+  <nav class="mobile-bottom-nav">
+    <button class="nav-btn-circle" id="mobile-view-toggle-btn" aria-label="Toggle view">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M4 5h12M4 10h12M4 15h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="nav-btn-pill" id="mobile-month-pill">
+      <button class="pill-arrow" id="mobile-prev-btn" aria-label="Previous month">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="pill-month-text" id="mobile-month-title"></button>
+      <button class="pill-arrow" id="mobile-next-btn" aria-label="Next month">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <button class="nav-btn-circle today-btn-icon" id="mobile-today-btn" aria-label="Go to today">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <rect x="2" y="4" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M2 8h16" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M6 2v4M14 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="today-date-num" id="mobile-today-date-num"></span>
+    </button>
+  </nav>
+
+  <!-- Month overlay (mobile fullscreen picker) -->
+  <div class="month-overlay" id="month-overlay">
+    <div class="month-overlay-backdrop" id="month-overlay-backdrop"></div>
+    <div class="month-overlay-panel">
+      <div class="month-overlay-header">Select Month</div>
+      <div class="month-overlay-grid" id="month-overlay-grid"></div>
     </div>
   </div>
 
