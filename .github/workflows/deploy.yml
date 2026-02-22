@@ -59,7 +59,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy new image
-        uses: azure/container-apps-deploy@v1
+        uses: azure/container-apps-deploy-action@v1
         with:
           resourceGroup: rg-releases
           containerAppName: releases
