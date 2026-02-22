@@ -133,9 +133,12 @@ body::before {
 
 /* ── nav controls (circle + pill + circle) ── */
 .nav-controls {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 12px;
+}
+.nav-controls.desktop-controls {
+  display: none;
 }
 
 .nav-btn-circle {
@@ -240,12 +243,12 @@ body::before {
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(10, 10, 15, 0.88);
+  background: rgba(10, 10, 15, 0.92);
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
   border-top: 1px solid var(--surface-border);
-  padding: 8px 16px;
-  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: 10px 20px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   justify-content: center;
   align-items: center;
   gap: 12px;
@@ -390,8 +393,25 @@ body::before {
   z-index: -1;
 }
 
-.featured-grid { overflow: hidden; }
-.featured-grid .col { min-width: 0; }
+.featured-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  overflow: hidden;
+}
+.featured-grid .col {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  flex: none;
+  padding: 0;
+}
+@media (min-width: 768px) {
+  .featured-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 1200px) {
+  .featured-grid { grid-template-columns: repeat(5, 1fr); }
+}
 
 .featured-card {
   cursor: pointer;
@@ -517,10 +537,13 @@ body::before {
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.3), 0 16px 48px rgba(0, 0, 0, 0.15) !important;
 }
-.movie-card .card-body {
+.movie-card {
+  padding: 16px;
+}
+.card-top {
   display: flex;
   gap: 16px;
-  padding: 16px;
+  align-items: flex-start;
 }
 .card-poster {
   width: 100px;
@@ -530,11 +553,13 @@ body::before {
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
-.card-details { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+.card-details { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; flex: 1; min-width: 0; }
+.card-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .card-title { font-size: 17px !important; font-weight: 700 !important; letter-spacing: -0.025em; margin-bottom: 0 !important; color: var(--text) !important; }
+.card-rating { font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
 .card-meta { font-size: 14px; color: var(--text-muted); line-height: 1.375; margin-bottom: 0; }
-.card-rating { font-size: 14px; font-weight: 600; color: var(--accent); }
-.card-overview { font-size: 14px; line-height: 1.625; color: var(--text-dim); margin-bottom: 0; }
+.card-overview { font-size: 14px; line-height: 1.625; color: var(--text-dim); margin: 12px 0 0; }
+.movie-card > .tickets-btn { display: block; width: 100%; text-align: center; margin-top: 12px; box-shadow: none !important; }
 .tickets-btn { box-shadow: none !important; }
 
 /* ── Bootstrap modal overrides ── */
@@ -658,20 +683,20 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 @media (min-width: 641px) {
   .nav-inner {
     padding: 12px 24px;
-    justify-content: space-between;
+    justify-content: space-between !important;
   }
   .page-title { font-size: 22px; }
-  .desktop-controls { display: flex; }
+  .nav-controls.desktop-controls { display: flex !important; }
   .mobile-bottom-nav { display: none !important; }
 }
 
 /* ── responsive: mobile ── */
 @media (max-width: 640px) {
-  .nav-inner { justify-content: center; }
-  .desktop-controls { display: none !important; }
-  .mobile-bottom-nav { display: flex; }
+  .nav-inner { justify-content: center !important; }
+  .nav-controls.desktop-controls { display: none !important; }
+  .mobile-bottom-nav { display: flex !important; }
 
-  .main-content { padding: 16px 12px 80px; }
+  .main-content { padding: 16px 12px 100px; }
 
   .featured-grid { gap: 12px !important; }
   .featured-poster { border-radius: 8px; }
@@ -685,9 +710,14 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
   .day-movies { gap: 4px; margin-top: 4px; }
   .more-badge { font-size: 9px; padding: 0 2px; }
 
-  .movie-card .card-body { flex-direction: column !important; align-items: center; text-align: center; }
-  .card-poster { width: 120px; height: 180px; border-radius: 8px; }
-  .tickets-btn { align-self: center; }
+  .movie-card { padding: 12px; }
+  .card-top { gap: 12px; }
+  .card-poster { width: 85px; height: 128px; border-radius: 8px; }
+  .card-details { gap: 4px; }
+  .card-title { font-size: 15px !important; }
+  .card-meta { font-size: 12px; }
+  .card-overview { font-size: 13px; }
+  .tickets-btn { font-size: 13px; }
   .timeline-group-header { font-size: 10px; padding-bottom: 6px; margin-bottom: 12px; }
 
   .movie-modal-content { border-radius: 16px !important; }

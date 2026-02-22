@@ -152,16 +152,19 @@ export function renderTimeline(moviesByDate: Map<string, Movie[]>) {
         : escapeHtml(m.overview);
 
       parts.push('<div class="card movie-card">');
-      parts.push('<div class="card-body">');
+      parts.push('<div class="card-top">');
       parts.push(`<img class="card-poster rounded-3 flex-shrink-0" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />`);
       parts.push('<div class="card-details">');
+      parts.push('<div class="card-title-row">');
       parts.push(`<h4 class="card-title">${esc}</h4>`);
+      if (m.vote_average > 0) parts.push(`<span class="card-rating">★ ${m.vote_average.toFixed(1)}</span>`);
+      parts.push('</div>');
       if (m.director) parts.push(`<span class="card-meta">Directed by ${escapeHtml(m.director)}</span>`);
       if (m.cast.length) parts.push(`<span class="card-meta">${escapeHtml(m.cast.join(", "))}</span>`);
-      if (m.vote_average > 0) parts.push(`<span class="card-rating">★ ${m.vote_average.toFixed(1)}</span>`);
+      parts.push('</div></div>');
       parts.push(`<p class="card-overview">${overview}</p>`);
       parts.push(`<a class="tickets-btn btn btn-warning rounded-pill fw-bold" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Get Tickets</a>`);
-      parts.push('</div></div></div>');
+      parts.push('</div>');
     }
     parts.push('</div></div>');
   }
