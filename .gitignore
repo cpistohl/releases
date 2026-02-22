@@ -48,3 +48,9 @@ src/client/compiled.css
 .aider*
 .copilot
 .windsurf
+
+# Terraform
+infra/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
