@@ -50,7 +50,7 @@ src/client/compiled.css
 .windsurf
 
 # Terraform
-infra/.terraform/
+.config/.terraform/
 *.tfstate
 *.tfstate.backup
 *.tfvars
