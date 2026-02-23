@@ -55,6 +55,8 @@ variable "tmdb_api_key" {
   sensitive   = true
 }
 
+data "azurerm_client_config" "current" {}
+
 data "azurerm_resource_group" "main" {
   name = var.resource_group_name
 }
@@ -68,6 +70,28 @@ resource "azurerm_log_analytics_workspace" "main" {
   retention_in_days   = 30
 }
 
+# key vault
+resource "azurerm_key_vault" "main" {
+  name                = "kv-releases-cpistohl"
+  location            = data.azurerm_resource_group.main.location
+  resource_group_name = data.azurerm_resource_group.main.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = ["Get", "List", "Set", "Delete", "Purge"]
+  }
+}
+
+resource "azurerm_key_vault_secret" "tmdb_api_key" {
+  name         = "tmdb-api-key"
+  value        = var.tmdb_api_key
+  key_vault_id = azurerm_key_vault.main.id
+}
+
 # Container app environment
 resource "azurerm_container_app_environment" "main" {
   name                       = "cae-releases"
@@ -77,6 +101,8 @@ resource "azurerm_container_app_environment" "main" {
 }
 
 # Container App
+# Secrets are passed from Terraform variables (sourced from Key Vault via tfvars).
+# Key Vault stores the source of truth; Terraform reads and applies them here.
 resource "azurerm_container_app" "releases" {
   name                         = "releases"
   container_app_environment_id = azurerm_container_app_environment.main.id

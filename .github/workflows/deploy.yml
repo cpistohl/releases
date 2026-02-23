@@ -59,11 +59,8 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy new image
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          resourceGroup: rg-releases
-          containerAppName: releases
-          imageToDeploy: ${{ needs.build-and-push.outputs.image_tag }}
-          registryUrl: ghcr.io
-          registryUsername: cpistohl
-          registryPassword: ${{ secrets.GHCR_TOKEN }}
+        env:
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+        run: |
+          az containerapp update -n releases -g rg-releases \
+            --image "$IMAGE_TAG"
