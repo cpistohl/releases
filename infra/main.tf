@@ -146,11 +146,6 @@ resource "azurerm_container_app" "releases" {
         name        = "TMDB_API_KEY"
         secret_name = "tmdb-api-key"
       }
-
-      env {
-        name  = "CACHE_DIR"
-        value = "/app/data"
-      }
     }
 
     min_replicas = 0
