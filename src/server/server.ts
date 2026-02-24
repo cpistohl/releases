@@ -1,5 +1,5 @@
 import { fetchMoviesForMonth, prefetchMonth, groupByDate, type Movie } from "../lib/tmdb";
-import { MONTH_NAMES } from "../lib/constants";
+import { MONTH_NAMES, escapeHtml } from "../lib/constants";
 import index from "../client/index.html";
 import * as Sentry from "@sentry/bun";
 
@@ -10,10 +10,6 @@ Sentry.init({
   enableLogs: true,
   tracesSampleRate: isDev ? 1.0 : 0.2,
 });
-
-function escapeHtml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
 
 function errorPage(status: number, title: string, message: string) {
   const emoji = status === 404 ? "🔍" : status >= 500 ? "🎬" : "⚠️";
@@ -98,7 +94,7 @@ Bun.serve({
           moviesByDate,
           error: !Bun.env.TMDB_API_KEY || Bun.env.TMDB_API_KEY === "your_api_key_here"
             ? "TMDB API key not configured. Set TMDB_API_KEY in the .env file."
-            : "",
+            : ""
         });
       } catch (err) {
         Sentry.captureException(err, {
@@ -114,7 +110,7 @@ Bun.serve({
     return errorPage(404, "Page Not Found", `There's nothing at <code style="color:#e4a048">${escapeHtml(path)}</code>. It might have been moved or doesn't exist.`);
   },
 
-  development: { hmr: true, console: true },
+  development: process.env.NODE_ENV !== "production" && { hmr: true, console: true },
 });
 
 console.log(`Running at http://localhost:${Bun.env.PORT || "3000"}`);

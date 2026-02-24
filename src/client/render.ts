@@ -1,19 +1,6 @@
-import { MONTH_NAMES, DAY_NAMES, shortDate, longDate } from "../lib/constants";
+import { MONTH_NAMES, DAY_NAMES, shortDate, longDate, escapeHtml, type Movie } from "../lib/constants";
 
-export { MONTH_NAMES };
-
-export interface Movie {
-  id: number;
-  title: string;
-  release_date: string;
-  poster_path: string | null;
-  overview: string;
-  vote_average: number;
-  popularity: number;
-  cast: string[];
-  director: string;
-  genres: string[];
-}
+export { MONTH_NAMES, type Movie };
 
 const IMG = "https://image.tmdb.org/t/p";
 
@@ -25,12 +12,12 @@ const NO_POSTER = `data:image/svg+xml,${encodeURIComponent(
   </svg>`
 )}`;
 
+const MARCUS_BASE = "https://www.marcustheatres.com/movies";
+const TMDB_MOVIE_BASE = "https://www.themoviedb.org/movie";
+
 export function posterUrl(path: string | null, size = "w200") {
   return path ? `${IMG}/${size}${path}` : NO_POSTER;
 }
-
-const MARCUS_BASE = "https://www.marcustheatres.com/movies";
-const TMDB_MOVIE_BASE = "https://www.themoviedb.org/movie";
 
 export function marcusUrl(title: string) {
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -41,14 +28,9 @@ export function tmdbUrl(id: number) {
   return `${TMDB_MOVIE_BASE}/${id}`;
 }
 
-export function escapeHtml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
 const MAX_FEATURED = 5;
 const MAX_POSTERS_PER_DAY = 3;
 const OVERVIEW_LIMIT_DATA_ATTR = 500;
-
 
 function movieDataAttrs(m: Movie) {
   const esc = escapeHtml(m.title);
@@ -63,7 +45,7 @@ function movieDataAttrs(m: Movie) {
     `data-director="${escapeHtml(m.director)}"`,
     `data-genres="${escapeHtml(m.genres.join(", "))}"`,
     `data-tickets="${marcusUrl(m.title)}"`,
-    `data-tmdb="${tmdbUrl(m.id)}"`,
+    `data-tmdb="${tmdbUrl(m.id)}"`
   ].join(" ");
 }
 
@@ -73,10 +55,10 @@ export function renderFeatured(movies: Movie[]) {
 
   const cards = top.map((m, i) => {
     const esc = escapeHtml(m.title);
-    const hideClass = i === 4 ? " d-none d-xl-block" : "";
-    return `<div class="col${hideClass}">
-      <a class="featured-card d-block" ${movieDataAttrs(m)}>
-        <img class="featured-poster w-100" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />
+    const hideClass = i === 4 ? " featured-hidden-mobile" : "";
+    return `<div class="featured-col${hideClass}">
+      <a class="featured-card" ${movieDataAttrs(m)}>
+        <img class="featured-poster" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />
         <div class="featured-info">
           <span class="featured-title">${esc}</span>
           <span class="featured-date">${shortDate(m.release_date)}</span>
@@ -88,9 +70,9 @@ export function renderFeatured(movies: Movie[]) {
   return [
     '<div class="featured">',
     '<h2 class="featured-heading">Top Releases</h2>',
-    '<div class="row row-cols-2 row-cols-md-4 row-cols-xl-5 g-4 featured-grid">',
+    '<div class="featured-grid">',
     ...cards,
-    '</div></div>',
+    '</div></div>'
   ].join("");
 }
 
@@ -117,8 +99,7 @@ export function renderCalendarGrid(year: number, month: number, moviesByDate: Re
     const movies = moviesByDate[key] || [];
     const isToday = d === todayDate;
 
-    const cls = ["day-cell", movies.length ? "has-movies" : "", isToday ? "today" : ""]
-      .filter(Boolean).join(" ");
+    const cls = ["day-cell", movies.length ? "has-movies" : "", isToday ? "today" : ""].filter(Boolean).join(" ");
     const delay = (firstDay + d - 1) * 0.02;
 
     parts.push(`<div class="${cls}" style="animation-delay:${delay}s">`);
@@ -126,13 +107,16 @@ export function renderCalendarGrid(year: number, month: number, moviesByDate: Re
 
     if (movies.length) {
       parts.push('<div class="day-movies">');
+
       for (const m of movies.slice(0, MAX_POSTERS_PER_DAY)) {
         const esc = escapeHtml(m.title);
         parts.push(`<img class="mini-poster" src="${posterUrl(m.poster_path, "w200")}" alt="${esc}" loading="lazy" ${movieDataAttrs(m)} />`);
       }
+
       if (movies.length > MAX_POSTERS_PER_DAY) {
         parts.push(`<span class="more-badge">+${movies.length - MAX_POSTERS_PER_DAY}</span>`);
       }
+
       parts.push('</div>');
     }
     parts.push('</div>');
@@ -184,7 +168,7 @@ export function renderTimeline(moviesByDate: Record<string, Movie[]>) {
 
       parts.push('<div class="card movie-card">');
       parts.push('<div class="card-top">');
-      parts.push(`<img class="card-poster rounded-3 flex-shrink-0" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />`);
+      parts.push(`<img class="card-poster" src="${posterUrl(m.poster_path, "w300")}" alt="${esc}" loading="lazy" />`);
       parts.push('<div class="card-details">');
       parts.push('<div class="card-title-row">');
       parts.push(`<h4 class="card-title">${esc}</h4>`);
@@ -192,14 +176,12 @@ export function renderTimeline(moviesByDate: Record<string, Movie[]>) {
       parts.push('</div>');
       if (m.genres.length) parts.push(`<span class="card-genres">${escapeHtml(m.genres.join(" / "))}</span>`);
       if (m.cast.length) parts.push(`<span class="card-meta">${escapeHtml(m.cast.join(", "))}</span>`);
-      // Overview inside card-details (shown here on desktop via CSS, hidden on mobile)
       if (overview) parts.push(`<p class="card-overview card-overview-inline">${overview}</p>`);
       parts.push('</div></div>');
-      // Overview outside card-top (shown on mobile, hidden on desktop)
       if (overview) parts.push(`<p class="card-overview card-overview-block">${overview}</p>`);
       parts.push('<div class="card-actions">');
       if (ticketsLikely) {
-        parts.push(`<a class="tickets-btn btn btn-warning btn-sm rounded-pill fw-bold" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Tickets</a>`);
+        parts.push(`<a class="tickets-btn" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Tickets</a>`);
       }
       parts.push(`<a class="tmdb-link" href="${tmdbUrl(m.id)}" target="_blank" rel="noopener">Details &rsaquo;</a>`);
       parts.push('</div>');

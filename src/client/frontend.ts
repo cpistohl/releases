@@ -1,4 +1,3 @@
-import { Modal } from "bootstrap";
 import { MONTH_NAMES, DAY_NAMES, longDate } from "../lib/constants";
 import { renderFeatured, renderCalendarGrid, renderTimeline, type Movie } from "./render";
 
@@ -143,7 +142,7 @@ function updateMonthTitle(text: string) {
   monthTitle.textContent = text;
 }
 
-// skeletons shown while fetching
+// skeletons shown while fetching — uses trusted static HTML strings (no user input)
 function skeletons() {
   const featuredSkel =
     '<div class="featured">' +
@@ -151,7 +150,6 @@ function skeletons() {
     '<div class="skel-featured-grid">' +
     '<div class="skeleton-featured"></div>'.repeat(5) +
     '</div></div>';
-  // Using our own skeleton HTML (trusted content, not user input)
   featured.innerHTML = featuredSkel;
 
   const headers = DAY_NAMES.map(d => `<div class="day-header">${d}</div>`).join('');
@@ -174,6 +172,7 @@ function skeletons() {
   timeline.innerHTML = '<div class="skel-timeline">' + card.repeat(4) + '</div>';
 }
 
+// renders trusted API data via escapeHtml'd render functions — see render.ts
 async function load() {
   // cancel any in-flight request
   if (fetchController) fetchController.abort();
@@ -201,7 +200,7 @@ async function load() {
     updateMonthTitle(data.title);
     updateTodayHighlight();
 
-    // Render HTML from our own trusted API data via client-side render functions
+    // All HTML is built from TMDB API data with escapeHtml applied in render.ts
     featured.innerHTML = renderFeatured(data.movies);
     calendar.innerHTML = renderCalendarGrid(data.year, data.month, data.moviesByDate);
     timeline.innerHTML = renderTimeline(data.moviesByDate);
@@ -213,7 +212,7 @@ async function load() {
 
     if (data.error) {
       errorEl.textContent = data.error;
-      errorEl.className = "error-banner alert alert-warning";
+      errorEl.className = "error-banner error-warning";
     } else {
       errorEl.textContent = "";
       errorEl.className = "";
@@ -229,21 +228,20 @@ async function load() {
     if (err instanceof DOMException && err.name === "AbortError") return;
     console.error("load failed:", err);
     errorEl.textContent = "Failed to load movie data. Please try again.";
-    errorEl.className = "error-banner alert alert-danger";
+    errorEl.className = "error-banner error-danger";
   }
 }
 
 load();
 
-// movie modal (Bootstrap)
-let movieModal: Modal | null = null;
+// movie dialog (native <dialog>)
+const movieDialog = $("movieDialog") as HTMLDialogElement;
 
-function getMovieModal() {
-  if (!movieModal) {
-    movieModal = new Modal(document.getElementById("movieModal")!);
-  }
-  return movieModal;
-}
+$("dialog-close-btn").addEventListener("click", () => movieDialog.close());
+
+movieDialog.addEventListener("click", (e) => {
+  if (e.target === movieDialog) movieDialog.close();
+});
 
 document.addEventListener("click", e => {
   const t = e.target as HTMLElement;
@@ -271,27 +269,24 @@ function openPopover(el: HTMLElement) {
   const d = el.dataset;
   const title = d.title || "";
   const date = d.date ? longDate(d.date) : "";
-  const ratingVal = d.rating ? parseFloat(d.rating) : 0;
 
-  const modalBody = document.getElementById("movie-modal-body")!;
+  const modalBody = $("movie-modal-body");
   modalBody.textContent = "";
 
   const wrapper = document.createElement("div");
   wrapper.className = "popover-inner";
 
-  // Left column: poster
   const leftCol = document.createElement("div");
   leftCol.className = "popover-left";
 
   const img = document.createElement("img");
-  img.className = "popover-poster rounded-3";
+  img.className = "popover-poster";
   img.src = d.poster || "";
   img.alt = title;
   leftCol.appendChild(img);
 
   wrapper.appendChild(leftCol);
 
-  // Right column: title, date, genre + rating, description, actions
   const rightCol = document.createElement("div");
   rightCol.className = "popover-right";
 
@@ -324,7 +319,7 @@ function openPopover(el: HTMLElement) {
 
   if (d.tickets) {
     const ticketLink = document.createElement("a");
-    ticketLink.className = "tickets-btn btn btn-warning btn-sm rounded-pill fw-bold";
+    ticketLink.className = "tickets-btn";
     ticketLink.href = d.tickets;
     ticketLink.target = "_blank";
     ticketLink.rel = "noopener";
@@ -338,6 +333,7 @@ function openPopover(el: HTMLElement) {
     tmdbLink.href = d.tmdb;
     tmdbLink.target = "_blank";
     tmdbLink.rel = "noopener";
+    // trusted static HTML entity
     tmdbLink.innerHTML = "Details &rsaquo;";
     actionsEl.appendChild(tmdbLink);
   }
@@ -346,7 +342,7 @@ function openPopover(el: HTMLElement) {
   wrapper.appendChild(rightCol);
   modalBody.appendChild(wrapper);
 
-  getMovieModal().show();
+  movieDialog.showModal();
 }
 
 // back/forward

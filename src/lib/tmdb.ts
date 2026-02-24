@@ -1,11 +1,13 @@
 import { cacheGet, cacheSet } from "./cache";
+import { type Movie } from "./constants";
 import * as Sentry from "@sentry/bun";
+
+export type { Movie };
 
 const API_KEY = Bun.env.TMDB_API_KEY;
 if (!API_KEY) console.error("TMDB_API_KEY not set — add it to .env");
 
 const BASE = "https://api.themoviedb.org/3";
-const IMG = "https://image.tmdb.org/t/p";
 
 // cache TTLs
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -36,21 +38,8 @@ const GENRE_MAP: Record<number, string> = {
   80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
   14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
   9648: "Mystery", 10749: "Romance", 878: "Sci-Fi", 10770: "TV Movie",
-  53: "Thriller", 10752: "War", 37: "Western",
+  53: "Thriller", 10752: "War", 37: "Western"
 };
-
-export interface Movie {
-  id: number;
-  title: string;
-  release_date: string;
-  poster_path: string | null;
-  overview: string;
-  vote_average: number;
-  popularity: number;
-  cast: string[];
-  director: string;
-  genres: string[];
-}
 
 interface TMDBDiscoverResponse {
   page: number;
@@ -72,18 +61,6 @@ interface TMDBMovieResult {
 interface TMDBCreditsResponse {
   cast: { name: string; order: number }[];
   crew: { name: string; job: string }[];
-}
-
-const NO_POSTER = `data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300">
-    <rect width="200" height="300" fill="#e8e8ed" rx="8"/>
-    <text x="100" y="140" text-anchor="middle" fill="#8e8e93" font-family="system-ui" font-size="14">No Poster</text>
-    <text x="100" y="165" text-anchor="middle" fill="#8e8e93" font-family="system-ui" font-size="24">🎬</text>
-  </svg>`
-)}`;
-
-export function posterUrl(path: string | null, size = "w200") {
-  return path ? `${IMG}/${size}${path}` : NO_POSTER;
 }
 
 async function fetchCredits(id: number) {
@@ -182,7 +159,7 @@ async function _fetch(year: number, month: number, cacheKey: string) {
           poster_path: m.poster_path, overview: m.overview,
           vote_average: m.vote_average, popularity: m.popularity,
           cast: [], director: "",
-          genres: (m.genre_ids || []).map(id => GENRE_MAP[id]).filter((g): g is string => Boolean(g)),
+          genres: (m.genre_ids || []).map(id => GENRE_MAP[id]).filter((g): g is string => Boolean(g))
         });
       }
       if (page >= data.total_pages) break;

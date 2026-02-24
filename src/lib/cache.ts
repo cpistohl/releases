@@ -2,8 +2,8 @@ import { Database } from "bun:sqlite";
 import { join } from "path";
 
 const dbPath = Bun.env.CACHE_DIR ? join(Bun.env.CACHE_DIR, "cache.sqlite") : join(import.meta.dir, "../../cache.sqlite");
-
 const db = new Database(dbPath);
+
 db.run("PRAGMA journal_mode = WAL");
 db.run(`CREATE TABLE IF NOT EXISTS cache (
   key TEXT PRIMARY KEY,

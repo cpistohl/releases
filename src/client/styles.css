@@ -1,57 +1,3 @@
-/* Bootstrap is loaded via link tag in index.html */
-
-/* ── Bootstrap dark theme variable overrides ── */
-:root,
-[data-bs-theme="dark"] {
-  --bs-body-bg: #0a0a0f;
-  --bs-body-color: #e8e8ed;
-  --bs-body-color-rgb: 232, 232, 237;
-  --bs-secondary-color: #8b8b9e;
-  --bs-tertiary-color: #5a5a6e;
-  --bs-card-bg: #15151e;
-  --bs-card-border-color: rgba(255, 255, 255, 0.06);
-  --bs-card-cap-bg: #15151e;
-  --bs-modal-bg: #15151e;
-  --bs-modal-border-color: rgba(255, 255, 255, 0.06);
-  --bs-modal-header-border-color: rgba(255, 255, 255, 0.06);
-  --bs-border-color: rgba(255, 255, 255, 0.06);
-  --bs-border-color-translucent: rgba(255, 255, 255, 0.06);
-  --bs-link-color: #e4a048;
-  --bs-link-hover-color: #f0b45c;
-  --bs-link-color-rgb: 228, 160, 72;
-  --bs-warning: #e4a048;
-  --bs-warning-rgb: 228, 160, 72;
-  --bs-emphasis-color: #e8e8ed;
-  --bs-emphasis-color-rgb: 232, 232, 237;
-}
-
-/* Button warning color overrides */
-.btn-warning {
-  --bs-btn-color: #0a0a0f;
-  --bs-btn-bg: #e4a048;
-  --bs-btn-border-color: #e4a048;
-  --bs-btn-hover-color: #0a0a0f;
-  --bs-btn-hover-bg: #f0b45c;
-  --bs-btn-hover-border-color: #f0b45c;
-  --bs-btn-active-color: #0a0a0f;
-  --bs-btn-active-bg: #d4904a;
-  --bs-btn-active-border-color: #d4904a;
-  --bs-btn-focus-shadow-rgb: 228, 160, 72;
-}
-
-.btn-outline-warning {
-  --bs-btn-color: #e4a048;
-  --bs-btn-border-color: #e4a048;
-  --bs-btn-hover-color: #0a0a0f;
-  --bs-btn-hover-bg: #e4a048;
-  --bs-btn-hover-border-color: #e4a048;
-  --bs-btn-active-color: #0a0a0f;
-  --bs-btn-active-bg: #e4a048;
-  --bs-btn-active-border-color: #e4a048;
-  --bs-btn-focus-shadow-rgb: 228, 160, 72;
-}
-
-/* ── project variables ── */
 :root {
   --bg: #0a0a0f;
   --surface: #15151e;
@@ -66,12 +12,12 @@
   --rose: #d45d79;
 }
 
-/* ── base overrides ── */
+/* base resets */
 *, *::before, *::after { box-sizing: border-box; }
+body, h1, h2, h3, h4, p { margin: 0; }
 img, svg { display: block; max-width: 100%; }
-a { color: inherit; }
-button { font: inherit; color: inherit; }
-
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; border: none; background: none; cursor: pointer; }
 html { scroll-behavior: smooth; }
 
 body {
@@ -93,7 +39,7 @@ body::before {
   z-index: -1;
 }
 
-/* ── page title ── */
+/* page title */
 .page-title {
   font-size: 20px;
   font-weight: 700;
@@ -105,7 +51,7 @@ body::before {
   cursor: pointer;
 }
 
-/* ── navbar (single responsive nav) ── */
+/* navbar (single responsive nav) */
 /* Mobile: fixed at bottom */
 .navbar-header {
   position: fixed;
@@ -134,7 +80,7 @@ body::before {
   width: 100%;
 }
 
-/* Hide page title on mobile (nav is at bottom, title doesn't make sense there) */
+/* Hide page title on mobile */
 .page-title { display: none; }
 
 .nav-controls {
@@ -210,10 +156,7 @@ body::before {
   justify-content: center;
   width: 34px;
   height: 34px;
-  border: none;
-  background: none;
   color: var(--text-muted);
-  cursor: pointer;
   border-radius: 50%;
   transition: background 0.15s, color 0.15s;
   padding: 0;
@@ -226,19 +169,13 @@ body::before {
   font-weight: 600;
   font-size: 15px;
   color: var(--text);
-  background: none;
-  border: none;
   padding: 0 8px;
-  cursor: pointer;
   white-space: nowrap;
   width: 140px;
   text-align: center;
   transition: color 0.15s;
 }
 .pill-month-text:hover { color: var(--accent); }
-
-/* ── month dropdown (hidden — replaced by overlay) ── */
-.month-dropdown { display: none; }
 
 /* ── month overlay (bottom sheet on mobile, centered panel on desktop) ── */
 .month-overlay {
@@ -292,7 +229,6 @@ body::before {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-muted);
-  cursor: pointer;
   transition: background 0.15s, color 0.15s;
   padding: 0;
 }
@@ -313,7 +249,6 @@ body::before {
   color: var(--text-muted);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid transparent;
-  cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .month-overlay-grid button:hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
@@ -343,7 +278,10 @@ body::before {
 }
 
 /* ── featured ── */
-.featured { margin-bottom: 36px; }
+.featured {
+  margin-bottom: 36px;
+  padding: 0 1em;
+}
 .featured-heading {
   font-size: 12px;
   font-weight: 700;
@@ -365,29 +303,26 @@ body::before {
 }
 
 .featured-grid {
-  display: grid !important;
+  display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   overflow: hidden;
 }
-.featured-grid .col {
+.featured-col {
   min-width: 0;
-  width: 100%;
-  max-width: 100%;
-  flex: none;
-  padding: 0;
 }
+.featured-hidden-mobile { display: none; }
 @media (min-width: 768px) {
   .featured-grid { grid-template-columns: repeat(4, 1fr); }
 }
 @media (min-width: 1200px) {
   .featured-grid { grid-template-columns: repeat(5, 1fr); }
+  .featured-hidden-mobile { display: block; }
 }
 
 .featured-card {
   cursor: pointer;
   transition: transform 0.3s ease-out;
-  text-decoration: none !important;
   color: inherit;
   display: block;
 }
@@ -512,7 +447,27 @@ body::before {
   gap: 12px;
   margin-top: 12px;
 }
-.card-actions .tickets-btn { text-align: center; }
+
+/* Tickets button */
+.tickets-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 50rem;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+.tickets-btn:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+.tickets-btn:active { transform: scale(0.95); }
 
 /* TMDB link */
 .tmdb-link {
@@ -526,16 +481,16 @@ body::before {
 .tmdb-link:hover { color: var(--accent); }
 
 .movie-card {
-  border-radius: 16px !important;
-  border: 1px solid var(--surface-border) !important;
-  background: var(--surface) !important;
+  border-radius: 16px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
   transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
   padding: 12px;
 }
 .movie-card:hover {
-  background: var(--surface-hover) !important;
+  background: var(--surface-hover);
   transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.3), 0 16px 48px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.3), 0 16px 48px rgba(0, 0, 0, 0.15);
 }
 .card-top {
   display: flex;
@@ -552,9 +507,9 @@ body::before {
 }
 .card-details { display: flex; flex-direction: column; gap: 4px; padding: 4px 0; flex: 1; min-width: 0; }
 .card-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.card-title { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -0.025em; margin-bottom: 0 !important; color: var(--text) !important; }
+.card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.025em; color: var(--text); }
 .card-rating { font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
-.card-meta { font-size: 12px; color: var(--text-muted); line-height: 1.375; margin-bottom: 0; }
+.card-meta { font-size: 12px; color: var(--text-muted); line-height: 1.375; }
 .card-overview {
   font-size: 13px;
   line-height: 1.625;
@@ -568,25 +523,45 @@ body::before {
 /* Mobile: show block overview (below poster), hide inline (inside details) */
 .card-overview-inline { display: none; }
 .card-overview-block { display: block; }
-.tickets-btn { box-shadow: none !important; }
 
-/* ── Bootstrap modal overrides ── */
-.movie-modal-content {
-  background: var(--surface) !important;
-  border: 1px solid var(--surface-border) !important;
-  border-radius: 24px !important;
+/* ── native dialog (movie details) ── */
+.movie-dialog {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 24px;
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.3), 0 24px 80px rgba(0, 0, 0, 0.5),
     0 0 40px var(--accent-glow), 0 40px 100px rgba(228, 160, 72, 0.1);
+  color: var(--text);
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  position: relative;
 }
 
-.modal-backdrop {
-  --bs-backdrop-bg: rgba(0, 0, 0, 0.6);
-  --bs-backdrop-opacity: 1;
+.movie-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
-.modal-backdrop.show { opacity: 1; }
+
+.dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.dialog-close:hover { background: rgba(255, 255, 255, 0.2); }
 
 /* Popover two-column layout */
 .popover-inner {
@@ -603,18 +578,6 @@ body::before {
   height: 210px;
   object-fit: cover;
   border-radius: 12px;
-}
-.popover-title-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-.popover-rating {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--accent);
-  white-space: nowrap;
 }
 .popover-right {
   display: flex;
@@ -655,10 +618,17 @@ body::before {
   text-align: center;
   font-size: 14px;
   padding: 16px 24px;
-  border-radius: 0 !important;
-  margin-bottom: 0 !important;
 }
-.error-banner a { color: inherit; }
+.error-warning {
+  background: rgba(228, 160, 72, 0.12);
+  color: var(--accent);
+  border-bottom: 1px solid rgba(228, 160, 72, 0.2);
+}
+.error-danger {
+  background: rgba(212, 93, 121, 0.12);
+  color: var(--rose);
+  border-bottom: 1px solid rgba(212, 93, 121, 0.2);
+}
 
 /* ── footer ── */
 .tmdb-footer {
@@ -671,8 +641,8 @@ body::before {
   margin: 0 auto;
   padding: 24px;
 }
-.tmdb-footer p { font-size: 12px; color: var(--text-dim); text-align: center; margin-bottom: 0; }
-.tmdb-footer a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
+.tmdb-footer p { font-size: 12px; color: var(--text-dim); text-align: center; }
+.tmdb-footer a { color: var(--accent); transition: color 0.15s; }
 .tmdb-footer a:hover { color: var(--accent-hover); }
 
 /* ── view switching ── */
@@ -726,19 +696,16 @@ button:focus-visible, a:focus-visible,
 button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 
 /* ── keyframes ── */
-@keyframes dropdown-in  { from { opacity: 0; transform: translateX(-50%) translateY(4px) } to { opacity: 1; transform: translateX(-50%) } }
 @keyframes fade-in      { from { opacity: 0 } to { opacity: 1 } }
 @keyframes fade-out     { from { opacity: 1 } to { opacity: 0 } }
 @keyframes fade-in-up   { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
-@keyframes scale-in     { from { opacity: 0; transform: scale(.95) } to { opacity: 1; transform: none } }
-@keyframes scale-in-center { from { opacity: 0; transform: translate(-50%, -50%) scale(.95) } to { opacity: 1; transform: translate(-50%, -50%) } }
-@keyframes scale-out    { from { opacity: 1; transform: none } to { opacity: 0; transform: scale(.95) } }
 @keyframes stagger-in   { from { opacity: 0; transform: scale(.95) } to { opacity: 1; transform: none } }
 @keyframes shimmer      { from { background-position: -1000px 0 } to { background-position: 1000px 0 } }
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow), 0 0 8px var(--accent-glow); }
   50%      { box-shadow: 0 0 0 6px transparent, 0 0 16px var(--accent-glow); }
 }
+@keyframes scale-in-center { from { opacity: 0; transform: translate(-50%, -50%) scale(.95) } to { opacity: 1; transform: translate(-50%, -50%) } }
 
 /* ── responsive: desktop (>=641px) ── */
 @media (min-width: 641px) {
@@ -799,11 +766,11 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 
   .movie-card { padding: 16px; }
   .card-top { gap: 16px; }
-  .card-poster { width: 100px; height: 150px; border-radius: 12px; }
+  .card-poster { width: 100px; height: 150px; }
   .card-details { gap: 6px; }
-  .card-title { font-size: 17px !important; }
+  .card-title { font-size: 17px; }
   .card-meta { font-size: 14px; }
-  .card-overview { font-size: 14px; color: var(--text-muted); }
+  .card-overview { font-size: 14px; }
   .card-genres { font-size: 13px; }
   .tmdb-link { font-size: 14px; }
 

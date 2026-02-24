@@ -1,7 +1,6 @@
 {
   "name": "releases",
   "devDependencies": {
-    "@types/bootstrap": "^5.2.10",
     "@types/bun": "latest"
   },
   "peerDependencies": {
@@ -14,7 +13,6 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@sentry/bun": "^10.39.0",
-    "bootstrap": "^5.3.8"
+    "@sentry/bun": "^10.39.0"
   }
 }
