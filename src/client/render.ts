@@ -177,13 +177,13 @@ export function renderTimeline(moviesByDate: Record<string, Movie[]>) {
       if (m.genres.length) parts.push(`<span class="card-genres">${escapeHtml(m.genres.join(" / "))}</span>`);
       if (m.cast.length) parts.push(`<span class="card-meta">${escapeHtml(m.cast.join(", "))}</span>`);
       if (overview) parts.push(`<p class="card-overview">${overview}</p>`);
+      parts.push('</div></div>');
       parts.push('<div class="card-actions">');
       if (ticketsLikely) {
         parts.push(`<a class="tickets-btn" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Tickets</a>`);
       }
       parts.push(`<a class="tmdb-link" href="${tmdbUrl(m.id)}" target="_blank" rel="noopener">Details &rsaquo;</a>`);
       parts.push('</div>');
-      parts.push('</div></div>');
       parts.push('</div>');
     }
     parts.push('</div></div>');

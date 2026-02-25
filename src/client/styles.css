@@ -425,8 +425,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: auto;
-  padding-top: 8px;
+  margin-top: 10px;
 }
 
 /* Tickets button */
@@ -495,22 +494,6 @@ body::before {
   padding: 0;
   flex: 1;
   min-width: 0;
-  max-height: 120px;
-  overflow: hidden;
-  position: relative;
-}
-.card-details::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 32px;
-  background: linear-gradient(to bottom, transparent, var(--surface));
-  pointer-events: none;
-}
-.movie-card:hover .card-details::after {
-  background: linear-gradient(to bottom, transparent, var(--surface-hover));
 }
 .card-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
@@ -518,11 +501,11 @@ body::before {
 .card-meta { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 .card-overview {
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--text-dim);
   margin: 4px 0 0;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -764,10 +747,10 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
   .movie-card { padding: 14px; }
   .card-top { gap: 14px; }
   .card-poster { width: 100px; height: 150px; }
-  .card-details { gap: 4px; max-height: 150px; }
+  .card-details { gap: 4px; }
   .card-title { font-size: 16px; }
   .card-meta { font-size: 13px; }
-  .card-overview { font-size: 13px; }
+  .card-overview { font-size: 13px; -webkit-line-clamp: 4; }
   .card-genres { font-size: 13px; }
   .tmdb-link { font-size: 13px; }
 }
