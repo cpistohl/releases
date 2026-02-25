@@ -6,9 +6,9 @@ const IMG = "https://image.tmdb.org/t/p";
 
 const NO_POSTER = `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300">
-    <rect width="200" height="300" fill="#e8e8ed" rx="8"/>
-    <text x="100" y="140" text-anchor="middle" fill="#8e8e93" font-family="system-ui" font-size="14">No Poster</text>
-    <text x="100" y="165" text-anchor="middle" fill="#8e8e93" font-family="system-ui" font-size="24">🎬</text>
+    <rect width="200" height="300" fill="#2c3440" rx="4"/>
+    <text x="100" y="140" text-anchor="middle" fill="#667" font-family="system-ui" font-size="14">No Poster</text>
+    <text x="100" y="165" text-anchor="middle" fill="#667" font-family="system-ui" font-size="24">🎬</text>
   </svg>`
 )}`;
 
@@ -176,15 +176,14 @@ export function renderTimeline(moviesByDate: Record<string, Movie[]>) {
       parts.push('</div>');
       if (m.genres.length) parts.push(`<span class="card-genres">${escapeHtml(m.genres.join(" / "))}</span>`);
       if (m.cast.length) parts.push(`<span class="card-meta">${escapeHtml(m.cast.join(", "))}</span>`);
-      if (overview) parts.push(`<p class="card-overview card-overview-inline">${overview}</p>`);
-      parts.push('</div></div>');
-      if (overview) parts.push(`<p class="card-overview card-overview-block">${overview}</p>`);
+      if (overview) parts.push(`<p class="card-overview">${overview}</p>`);
       parts.push('<div class="card-actions">');
       if (ticketsLikely) {
         parts.push(`<a class="tickets-btn" href="${marcusUrl(m.title)}" target="_blank" rel="noopener">Tickets</a>`);
       }
       parts.push(`<a class="tmdb-link" href="${tmdbUrl(m.id)}" target="_blank" rel="noopener">Details &rsaquo;</a>`);
       parts.push('</div>');
+      parts.push('</div></div>');
       parts.push('</div>');
     }
     parts.push('</div></div>');

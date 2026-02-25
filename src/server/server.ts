@@ -15,23 +15,23 @@ function errorPage(status: number, title: string, message: string) {
   const emoji = status === 404 ? "🔍" : status >= 500 ? "🎬" : "⚠️";
   return new Response(
     `<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>${status} — ${title}</title>
-  <meta name="theme-color" content="#0a0a0f"/>
+  <meta name="theme-color" content="#14181c"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#0a0a0f;color:#e8e8ed;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem}
+    body{background:#14181c;color:#e1e3e5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem}
     .error-container{max-width:480px}
     .error-emoji{font-size:4rem;margin-bottom:1.5rem;display:block;animation:float 3s ease-in-out infinite}
-    .error-code{font-size:6rem;font-weight:800;letter-spacing:-0.04em;background:linear-gradient(135deg,#e4a048,#f0b45c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+    .error-code{font-size:6rem;font-weight:800;letter-spacing:-0.04em;color:#00a878;line-height:1}
     .error-title{font-size:1.5rem;font-weight:600;margin:0.75rem 0}
-    .error-message{color:#8b8b9e;font-size:1rem;line-height:1.6;margin-bottom:2rem}
-    .error-home{display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:#e4a048;color:#0a0a0f;font-weight:700;font-size:0.95rem;border-radius:999px;text-decoration:none;transition:all 0.2s}
-    .error-home:hover{background:#f0b45c;transform:translateY(-1px);box-shadow:0 4px 20px rgba(228,160,72,0.3)}
+    .error-message{color:#9ab;font-size:1rem;line-height:1.6;margin-bottom:2rem}
+    .error-home{display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.75rem;background:#00a878;color:#14181c;font-weight:700;font-size:0.95rem;border-radius:4px;text-decoration:none;transition:all 0.2s}
+    .error-home:hover{background:#00c08a;transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,168,120,0.2)}
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
   </style>
 </head>
@@ -107,7 +107,7 @@ Bun.serve({
 
   fetch(req) {
     const path = new URL(req.url).pathname;
-    return errorPage(404, "Page Not Found", `There's nothing at <code style="color:#e4a048">${escapeHtml(path)}</code>. It might have been moved or doesn't exist.`);
+    return errorPage(404, "Page Not Found", `There's nothing at <code style="color:#00a878">${escapeHtml(path)}</code>. It might have been moved or doesn't exist.`);
   },
 
   development: process.env.NODE_ENV !== "production" && { hmr: true, console: true },
