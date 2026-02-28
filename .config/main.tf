@@ -19,18 +19,6 @@ variable "subscription_id" {
   type        = string
 }
 
-variable "resource_group_name" {
-  description = "Name of the existing resource group"
-  type        = string
-  default     = "rg-releases"
-}
-
-variable "location" {
-  description = "Azure region"
-  type        = string
-  default     = "centralus"
-}
-
 variable "container_image" {
   description = "Full container image reference"
   type        = string
@@ -57,20 +45,19 @@ variable "tmdb_api_key" {
 
 data "azurerm_client_config" "current" {}
 
+# --- Shared infrastructure (managed by flavor-finder) ---
+
 data "azurerm_resource_group" "main" {
-  name = var.resource_group_name
+  name = "rg-apps"
 }
 
-# Log analytics
-resource "azurerm_log_analytics_workspace" "main" {
-  name                = "log-releases"
-  location            = data.azurerm_resource_group.main.location
+data "azurerm_container_app_environment" "main" {
+  name                = "cae-apps"
   resource_group_name = data.azurerm_resource_group.main.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
 }
 
-# key vault
+# --- App-specific resources ---
+
 resource "azurerm_key_vault" "main" {
   name                = "kv-releases-cpistohl"
   location            = data.azurerm_resource_group.main.location
@@ -92,20 +79,11 @@ resource "azurerm_key_vault_secret" "tmdb_api_key" {
   key_vault_id = azurerm_key_vault.main.id
 }
 
-# Container app environment
-resource "azurerm_container_app_environment" "main" {
-  name                       = "cae-releases"
-  location                   = data.azurerm_resource_group.main.location
-  resource_group_name        = data.azurerm_resource_group.main.name
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
-}
+# --- Container Apps ---
 
-# Container App
-# Secrets are passed from Terraform variables (sourced from Key Vault via tfvars).
-# Key Vault stores the source of truth; Terraform reads and applies them here.
 resource "azurerm_container_app" "releases" {
   name                         = "releases"
-  container_app_environment_id = azurerm_container_app_environment.main.id
+  container_app_environment_id = data.azurerm_container_app_environment.main.id
   resource_group_name          = data.azurerm_resource_group.main.name
   revision_mode                = "Single"
 
@@ -153,7 +131,6 @@ resource "azurerm_container_app" "releases" {
   }
 }
 
-# Outputs
 output "app_url" {
   value = "https://${azurerm_container_app.releases.ingress[0].fqdn}"
 }
