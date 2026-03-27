@@ -1,6 +1,7 @@
 import { test, expect } from "bun:test";
 import type { Movie } from "../src/client/render";
-import { escapeHtml, marcusUrl, renderFeatured, renderCalendarGrid, renderTimeline } from "../src/client/render";
+import { marcusUrl, renderFeatured, renderCalendarGrid, renderTimeline } from "../src/client/render";
+import { escapeHtml } from "../src/lib/constants";
 
 function movie(overrides: Partial<Movie> = {}): Movie {
   return {

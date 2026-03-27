@@ -1,5 +1,6 @@
 import { test, expect } from "bun:test";
-import { posterUrl, groupByDate, type Movie } from "../src/lib/tmdb";
+import { groupByDate, type Movie } from "../src/lib/tmdb";
+import { posterUrl } from "../src/client/render";
 
 function movie(overrides: Partial<Movie> = {}): Movie {
   return {

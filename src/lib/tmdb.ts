@@ -1,6 +1,5 @@
 import { cacheGet, cacheSet } from "./cache";
 import { type Movie } from "./constants";
-import * as Sentry from "@sentry/bun";
 
 export type { Movie };
 
@@ -8,6 +7,7 @@ const API_KEY = Bun.env.TMDB_API_KEY;
 if (!API_KEY) console.error("TMDB_API_KEY not set — add it to .env");
 
 const BASE = "https://api.themoviedb.org/3";
+const AUTH_HEADERS = { Authorization: `Bearer ${API_KEY}` };
 
 // cache TTLs
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -69,7 +69,7 @@ async function fetchCredits(id: number) {
   if (hit) return hit;
 
   try {
-    const res = await fetch(`${BASE}/movie/${id}/credits?api_key=${API_KEY}`);
+    const res = await fetch(`${BASE}/movie/${id}/credits`, { headers: AUTH_HEADERS });
     if (!res.ok) return { cast: [] as string[], director: "" };
     const data: TMDBCreditsResponse = await res.json();
 
@@ -79,7 +79,7 @@ async function fetchCredits(id: number) {
     cacheSet(key, result, ONE_DAY);
     return result;
   } catch (err) {
-    Sentry.addBreadcrumb({ category: "tmdb", message: `Credits fetch failed for movie ${id}`, level: "warning" });
+    console.error(`Credits fetch failed for movie ${id}:`, err);
     return { cast: [] as string[], director: "" };
   }
 }
@@ -132,7 +132,6 @@ async function _fetch(year: number, month: number, cacheKey: string) {
   const to = `${year}-${mm}-${String(last).padStart(2, "0")}`;
 
   const params = new URLSearchParams({
-    api_key: API_KEY,
     language: "en-US",
     region: "US",
     sort_by: "popularity.desc",
@@ -148,7 +147,7 @@ async function _fetch(year: number, month: number, cacheKey: string) {
   for (let page = 1; page <= MAX_PAGES; page++) {
     params.set("page", String(page));
     try {
-      const res = await fetch(`${BASE}/discover/movie?${params}`);
+      const res = await fetch(`${BASE}/discover/movie?${params}`, { headers: AUTH_HEADERS });
       if (!res.ok) { console.error(`TMDB ${res.status}`); break; }
       const data: TMDBDiscoverResponse = await res.json();
 
@@ -166,8 +165,7 @@ async function _fetch(year: number, month: number, cacheKey: string) {
       const lastResult = data.results[data.results.length - 1];
       if (lastResult && lastResult.popularity < minPop) break;
     } catch (err) {
-      Sentry.captureException(err, { tags: { source: "tmdb", year: String(year), month: String(month) } });
-      console.error("TMDB fetch failed:", err);
+      console.error(`TMDB fetch failed for ${year}-${month}:`, err);
       break;
     }
   }

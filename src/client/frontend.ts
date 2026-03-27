@@ -192,7 +192,6 @@ async function load() {
       title: string;
       year: number;
       month: number;
-      movies: Movie[];
       moviesByDate: Record<string, Movie[]>;
       error: string;
     } = await res.json();
@@ -200,8 +199,11 @@ async function load() {
     updateMonthTitle(data.title);
     updateTodayHighlight();
 
+    const allMovies = Object.values(data.moviesByDate).flat();
+
     // All HTML is built from TMDB API data with escapeHtml applied in render.ts
-    featured.innerHTML = renderFeatured(data.movies);
+    // All values are escaped via escapeHtml() in render.ts before insertion
+    featured.innerHTML = renderFeatured(allMovies);
     calendar.innerHTML = renderCalendarGrid(data.year, data.month, data.moviesByDate);
     timeline.innerHTML = renderTimeline(data.moviesByDate);
 

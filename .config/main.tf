@@ -25,18 +25,6 @@ variable "container_image" {
   default     = "ghcr.io/cpistohl/releases:latest"
 }
 
-variable "ghcr_username" {
-  description = "GitHub Container Registry username"
-  type        = string
-  default     = "cpistohl"
-}
-
-variable "ghcr_password" {
-  description = "GHCR PAT with read:packages scope"
-  type        = string
-  sensitive   = true
-}
-
 variable "tmdb_api_key" {
   description = "TMDB API key"
   type        = string
@@ -69,7 +57,8 @@ resource "azurerm_key_vault" "main" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
-    secret_permissions = ["Get", "List", "Set", "Delete", "Purge"]
+    secret_permissions      = ["Get", "List", "Set", "Delete", "Purge"]
+    certificate_permissions = ["Get", "List"]
   }
 }
 
@@ -88,19 +77,8 @@ resource "azurerm_container_app" "releases" {
   revision_mode                = "Single"
 
   secret {
-    name  = "ghcr-password"
-    value = var.ghcr_password
-  }
-
-  secret {
     name  = "tmdb-api-key"
     value = var.tmdb_api_key
-  }
-
-  registry {
-    server               = "ghcr.io"
-    username             = var.ghcr_username
-    password_secret_name = "ghcr-password"
   }
 
   ingress {

@@ -12,7 +12,5 @@
     "dev": "bun --hot src/server/server.ts",
     "test": "bun test"
   },
-  "dependencies": {
-    "@sentry/bun": "^10.39.0"
-  }
+  "dependencies": {}
 }
